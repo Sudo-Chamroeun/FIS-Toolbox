@@ -37,13 +37,10 @@ do {
             Invoke-Expression (Invoke-WebRequest -Uri "$RepoURL/DeleteChromeProfiles.ps1" -UseBasicParsing).Content
             Pause
         }
-        '4' { 
-            Write-Host "Blocking Browsers..." -ForegroundColor Green
-            Invoke-Expression (Invoke-WebRequest -Uri "$RepoURL/DeleteChromeProfiles.ps1" -UseBasicParsing).Content
-            Pause
-        }
         'Q' { 
             Write-Host "Exiting..." -ForegroundColor Yellow
+            Start-Sleep -Seconds 1
+            Clear-Host  # <--- This wipes the screen clean
             break 
         }
         Default { Write-Host "Invalid selection, try again." -ForegroundColor Red; Start-Sleep -Seconds 1 }
