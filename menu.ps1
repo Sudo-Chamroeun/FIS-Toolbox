@@ -29,19 +29,17 @@ do {
         }
         '2' { 
             Write-Host "Blocking Browsers..." -ForegroundColor Green
-            Invoke-Expression (Invoke-WebRequest -Uri "$RepoURL/block-browser.ps1" -UseBasicParsing).Content
+            Invoke-Expression (Invoke-WebRequest -Uri "$RepoURL/Browser-Controls.bat" -UseBasicParsing).Content
             Pause
         }
-        '3' {
-            Write-Host "Checking for updates..." -ForegroundColor Green
-            # You can also just run commands directly here without downloading a script
-            Get-WindowsUpdate -Install -AcceptAll
+        '3' { 
+            Write-Host "Blocking Browsers..." -ForegroundColor Green
+            Invoke-Expression (Invoke-WebRequest -Uri "$RepoURL/DeleteChromeProfiles.ps1" -UseBasicParsing).Content
             Pause
         }
-        '4' {
-            Write-Host "Checking for updates..." -ForegroundColor Green
-            # You can also just run commands directly here without downloading a script
-            Get-WindowsUpdate -Install -AcceptAll
+        '4' { 
+            Write-Host "Blocking Browsers..." -ForegroundColor Green
+            Invoke-Expression (Invoke-WebRequest -Uri "$RepoURL/DeleteChromeProfiles.ps1" -UseBasicParsing).Content
             Pause
         }
         'Q' { 
