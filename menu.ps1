@@ -28,13 +28,71 @@ do {
             Pause
         }
         '2' { 
-            Write-Host "Blocking Browsers..." -ForegroundColor Green
-            Invoke-Expression (Invoke-WebRequest -Uri "$RepoURL/Browser-Controls.bat" -UseBasicParsing).Content
+            Write-Host "Browser Controls loading..." -ForegroundColor Cyan
+            
+            # 1. SETTINGS
+            # Save it as a .bat file in the temp folder
+            $TempFile = "$env:TEMP\Browser-Controls.bat"  
+            # Your GitHub Raw Link to the .bat file
+            $BatUrl   = "https://github.com/Sudo-Chamroeun/FIS-Toolbox/tree/main/Browser-Controls.bat" 
+
+            # 2. DOWNLOAD
+            Write-Host "Downloading..." -NoNewline
+            try {
+                Invoke-WebRequest -Uri $BatUrl -OutFile $TempFile -ErrorAction Stop
+                Write-Host "Done." -ForegroundColor Green
+            }
+            catch {
+                Write-Host "Error downloading! Check URL." -ForegroundColor Red
+                break 
+            }
+
+            # 3. RUN (The Change is Here)
+            Write-Host "Executing Batch File..."
+            # We explicitly tell cmd.exe to run the file
+            # /c means "Run this and then close"
+            Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$TempFile`"" -Wait 
+
+            # 4. CLEANUP
+            if (Test-Path $TempFile) {
+                Remove-Item -Path $TempFile -Force
+            }
+            
+            Write-Host "Cleanup Complete." -ForegroundColor Yellow
             Pause
         }
         '3' { 
-            Write-Host "Blocking Browsers..." -ForegroundColor Green
-            Invoke-Expression (Invoke-WebRequest -Uri "$RepoURL/DeleteChromeProfiles.ps1" -UseBasicParsing).Content
+            Write-Host "Apply Delete Chrome profile" -ForegroundColor Cyan
+            
+            # 1. SETTINGS
+            # Save it as a .bat file in the temp folder
+            $TempFile = "$env:TEMP\DeleteChromeProfilesTask_Final.bat"  
+            # Your GitHub Raw Link to the .bat file
+            $BatUrl   = "https://github.com/Sudo-Chamroeun/FIS-Toolbox/tree/main/DeleteChromeProfilesTask_Final.bat" 
+
+            # 2. DOWNLOAD
+            Write-Host "Applying..." -NoNewline
+            try {
+                Invoke-WebRequest -Uri $BatUrl -OutFile $TempFile -ErrorAction Stop
+                Write-Host "Done." -ForegroundColor Green
+            }
+            catch {
+                Write-Host "Error downloading! Check URL." -ForegroundColor Red
+                break 
+            }
+
+            # 3. RUN (The Change is Here)
+            Write-Host "Executing Batch File..."
+            # We explicitly tell cmd.exe to run the file
+            # /c means "Run this and then close"
+            Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$TempFile`"" -Wait 
+
+            # 4. CLEANUP
+            if (Test-Path $TempFile) {
+                Remove-Item -Path $TempFile -Force
+            }
+            
+            Write-Host "Cleanup Complete." -ForegroundColor Yellow
             Pause
         }
         'Q' { 
