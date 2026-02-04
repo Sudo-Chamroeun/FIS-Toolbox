@@ -3,15 +3,21 @@
     Hosted at: fistoolbox.automizze.us
 #>
 
-# --- STEP 0: FIX CONNECTIVITY FOR ALL WINDOWS VERSIONS ---
+# --- STEP 0: FIX PERMISSIONS (CRITICAL FOR VM) ---
+# 1. Force TLS 1.2 for GitHub downloads
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# 2. Force Script Execution (Fixes "running scripts is disabled" error)
+# This allows the downloaded tools to run within this specific window.
+Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force -ErrorAction SilentlyContinue
 
 # --- STEP 1: POPUP LOGIC ---
 $WindowTitle = "Footprints IT Console"
 
 if ($Host.UI.RawUI.WindowTitle -ne $WindowTitle) {
     Write-Host "Launching Console..." -ForegroundColor Cyan
-    Start-Process powershell -ArgumentList "-NoExit", "-Command `"`$Host.UI.RawUI.WindowTitle='$WindowTitle'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm fistoolbox.automizze.us | iex`""
+    # We pass the execution policy into the new window as well
+    Start-Process powershell -ArgumentList "-NoExit", "-ExecutionPolicy Bypass", "-Command `"`$Host.UI.RawUI.WindowTitle='$WindowTitle'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm fistoolbox.automizze.us | iex`""
     break
 }
 
@@ -27,22 +33,25 @@ function Show-Header {
     [Console]::Clear()
     $c = "Cyan"; $b = "Green"; $w = "White"
 
-    Write-Host "╔══════════════════════════════════════════════════════════════════════╗" -ForegroundColor $c
-    Write-Host "║                                                                      ║" -ForegroundColor $c
-    # NEW LOGO: FOOTPRINTS (Spelled with letters)
-    Write-Host "║  FFFFFF   OOOOO    OOOOO   TTTTTTT  PPPPPP   RRRRRR   IIIII  N    N  ║" -ForegroundColor $b
-    Write-Host "║  F       O     O  O     O     T     P     P  R     R    I    NN   N  ║" -ForegroundColor $b
-    Write-Host "║  FFFF    O     O  O     O     T     PPPPPP   RRRRRR     I    N N  N  ║" -ForegroundColor $b
-    Write-Host "║  F       O     O  O     O     T     P        R   R      I    N  N N  ║" -ForegroundColor $b
-    Write-Host "║  F        OOOOO    OOOOO      T     P        R    R   IIIII  N    N  ║" -ForegroundColor $b
-    Write-Host "║                                                                      ║" -ForegroundColor $c
-    Write-Host "║           TTTTTTT   SSSSS      S C H O O L   T O O L S               ║" -ForegroundColor $w
-    Write-Host "║              T     S           -----------------------               ║" -ForegroundColor $c
-    Write-Host "║              T      SSSSS                                            ║" -ForegroundColor $b
-    Write-Host "║              T           S                                           ║" -ForegroundColor $b
-    Write-Host "║              T     SSSSS                                             ║" -ForegroundColor $b
-    Write-Host "║                                                                      ║" -ForegroundColor $c
-    Write-Host "╚══════════════════════════════════════════════════════════════════════╝" -ForegroundColor $c
+    Write-Host "╔══════════════════════════════════════════════════════════════════════════════╗" -ForegroundColor $c
+    Write-Host "║                                                                              ║" -ForegroundColor $c
+    
+    # NEW BANNER: FOOTPRINTS (Using Letters)
+    Write-Host "║ FFFFFFF  OOOOO   OOOOO   TTTTTTT  PPPPPP   RRRRRR   IIIII  N    N  TTTTTTT ║" -ForegroundColor $b
+    Write-Host "║ F       O     O O     O     T     P     P  R     R    I    NN   N     T    ║" -ForegroundColor $b
+    Write-Host "║ FFFF    O     O O     O     T     PPPPPP   RRRRRR     I    N N  N     T    ║" -ForegroundColor $b
+    Write-Host "║ F       O     O O     O     T     P        R   R      I    N  N N     T    ║" -ForegroundColor $b
+    Write-Host "║ F        OOOOO   OOOOO      T     P        R    R   IIIII  N    N     T    ║" -ForegroundColor $b
+    Write-Host "║                                                                              ║" -ForegroundColor $c
+    
+    # SECOND LINE: SCHOOL TOOLS
+    Write-Host "║                SSSSS    SSSS   H   H   OOO    OOO   L                        ║" -ForegroundColor $w
+    Write-Host "║               S        S       H   H  O   O  O   O  L                        ║" -ForegroundColor $w
+    Write-Host "║                SSSSS    SSSS   HHHHH  O   O  O   O  L                        ║" -ForegroundColor $w
+    Write-Host "║                     S       S  H   H  O   O  O   O  L                        ║" -ForegroundColor $w
+    Write-Host "║                SSSSS    SSSS   H   H   OOO    OOO   LLLLLL                   ║" -ForegroundColor $w
+    Write-Host "║                                                                              ║" -ForegroundColor $c
+    Write-Host "╚══════════════════════════════════════════════════════════════════════════════╝" -ForegroundColor $c
     Write-Host ""
 }
 
@@ -56,10 +65,10 @@ do {
     Write-Host "    [4] Delete Chrome Profile Desktop" -ForegroundColor White
     Write-Host ""
     
-    Write-Host "    ------------------- INSTRUCTIONS -------------------" -ForegroundColor DarkGray
+    Write-Host "    ----------------------- INSTRUCTIONS -----------------------" -ForegroundColor DarkGray
     Write-Host "     * Run this tool as Administrator for full access." -ForegroundColor Gray
-    Write-Host "     * Type the number of the tool you want to use." -ForegroundColor Gray
-    Write-Host "    ----------------------------------------------------" -ForegroundColor DarkGray
+    Write-Host "     * Scripts are temporarily unlocked for this session." -ForegroundColor Gray
+    Write-Host "    ------------------------------------------------------------" -ForegroundColor DarkGray
     Write-Host "    [Q] Quit" -ForegroundColor Red
     Write-Host ""
 
@@ -70,24 +79,21 @@ do {
             Write-Host "    > Initializing Folder Restriction..." -ForegroundColor Cyan
             
             $ToolPath = "$env:TEMP\FolderRestrictionTool.ps1"
-            
-            # --- FIX IS HERE ---
-            # We combine $RepoURL + The Folder + The File Name
             $ToolUrl  = "$RepoURL/FolderRestrictionTool.ps1"
 
             try {
                 Invoke-WebRequest -Uri $ToolUrl -OutFile $ToolPath -ErrorAction Stop -UseBasicParsing
                 
-                # Run the tool
+                # Execute the downloaded script
+                # The execution policy fix at the top makes this work now!
                 . $ToolPath
                 
                 if (Test-Path $ToolPath) { Remove-Item $ToolPath -Force -ErrorAction SilentlyContinue }
                 Start-Sleep -Milliseconds 500
             }
             catch {
-                Write-Host "    [!] Error downloading tool." -ForegroundColor Red
+                Write-Host "    [!] Error running tool." -ForegroundColor Red
                 Write-Host "    Info: $($_.Exception.Message)" -ForegroundColor DarkRed
-                Write-Host "    debug: Trying to access $ToolUrl" -ForegroundColor DarkGray
                 Pause
             }
         }
