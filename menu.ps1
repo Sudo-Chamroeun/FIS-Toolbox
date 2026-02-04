@@ -66,7 +66,7 @@ do {
             Write-Host "    > Initializing Folder Restriction..." -ForegroundColor Cyan
             
             $ToolPath = "$env:TEMP\FolderRestrictionTool.ps1"
-            $ToolUrl  = "$RepoURL/FolderRestrictionTool.ps1"
+            $ToolUrl  = "$RepoURL/https://raw.githubusercontent.com/Sudo-Chamroeun/FIS-Toolbox/refs/heads/main/FolderRestrictionTool.ps1"
 
             try {
                 # Added -UseBasicParsing for compatibility
