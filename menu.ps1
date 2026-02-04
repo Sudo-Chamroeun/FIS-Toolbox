@@ -32,7 +32,7 @@ do {
             
             # 1. SETTINGS
             # We save it to Temp
-            $TempFile = "$env:TEMP\Option2.bat"  
+            $TempFile = "$env:TEMP\Browser-Controls.bat"  
             
             # UPDATE THIS LINK to point to your .bat file, not menu.ps1
             $BatUrl   = "https://raw.githubusercontent.com/Sudo-Chamroeun/FIS-Toolbox/refs/heads/main/Browser-Controls.bat" 
