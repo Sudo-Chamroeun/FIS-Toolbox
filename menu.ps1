@@ -58,7 +58,7 @@ do {
     Write-Host "    [1] Folder Restriction" -ForegroundColor White
     Write-Host "    [2] Browser Control" -ForegroundColor White
     Write-Host "    [3] Block Change Setting" -ForegroundColor White
-    Write-Host "    [4] Delete Chrome Profile Desktop" -ForegroundColor White
+    Write-Host "    [4] Delete Chrome Profile" -ForegroundColor White
     #Write-Host "    [5] Delete Chrome Profile Laptop" -ForegroundColor DarkGray
     Write-Host ""
     
@@ -75,14 +75,36 @@ do {
     $input = Read-Host "    Select an option"
 
     switch ($input) {
-        '1' { 
-            Write-Host "    > Loading Folder Restriction..." -ForegroundColor Cyan
-            Start-Sleep -Seconds 1
-            # Option 1 Code will go here
+     '1' { 
+            Write-Host "    > Initializing Folder Restriction..." -ForegroundColor Cyan
+            
+            # 1. Define where to put the tool
+            $ToolPath = "$env:TEMP\FolderRestrictionTool.ps1"
+            # 2. Your new RAW link (Update this!)
+            $ToolUrl  = "$RepoURL/Folder-Restriction/FolderRestrictionTool.ps1"
+
+            try {
+                # 3. Download the single all-in-one script
+                Invoke-WebRequest -Uri $ToolUrl -OutFile $ToolPath -ErrorAction Stop
+                
+                # 4. Run it inside the current window
+                # We use dot-sourcing (.) so it runs in the same session
+                . $ToolPath
+                
+                # 5. Cleanup
+                Remove-Item $ToolPath -Force -ErrorAction SilentlyContinue
+                
+                # Reset screen when coming back
+                [Console]::Clear()
+            }
+            catch {
+                Write-Host "    [!] Error: Could not download tool." -ForegroundColor Red
+                Pause
+            }
         }
         
         '2' { 
-            Write-Host "    > Initializing Tool #2..." -ForegroundColor Cyan
+            Write-Host "    > Initializing Browser Controls Tool..." -ForegroundColor Cyan
             $TempFile = "$env:TEMP\Browser-Controls.bat"  
             $BatUrl   = "$RepoURL/Browser-Controls.bat" 
 
@@ -105,7 +127,7 @@ do {
         }
         
         '3' { 
-            Write-Host "    > Initializing Tool #3..." -ForegroundColor Cyan
+            Write-Host "    > Initializing Block Setting Tools..." -ForegroundColor Cyan
             $TempFile = "$env:TEMP\block-change-setting.bat"  
             $BatUrl   = "$RepoURL/block-change-setting.bat" 
 
@@ -124,7 +146,7 @@ do {
         } 
 
         '4' { 
-            Write-Host "    > Initializing Tool #4..." -ForegroundColor Cyan
+            Write-Host "    > Applying Delete Chrome Profile..." -ForegroundColor Cyan
             $TempFile = "$env:TEMP\DeleteChromeProfilesTask_Final.bat"  
             $BatUrl   = "$RepoURL/DeleteChromeProfilesTask_Final.bat" 
 
