@@ -33,20 +33,24 @@ function Show-Header {
     [Console]::Clear()
     $c = "Cyan"; $g = "Green"; $w = "White"
 
+    # Top Border (Total Width: 80 chars)
     Write-Host "╔══════════════════════════════════════════════════════════════════════════════╗" -ForegroundColor $c
     Write-Host "║                                                                              ║" -ForegroundColor $c
     
-    # ASCII ART: FOOTPRINTS (Using #)
-    Write-Host "║   ######  ####   ####  ###### #####  #####  ###  #    # ######  ####     ║" -ForegroundColor $g
-    Write-Host "║   #      #    # #    #   ##   #    # #    #  #   ##   #   ##   #         ║" -ForegroundColor $g
-    Write-Host "║   #####  #    # #    #   ##   #####  #####   #   # #  #   ##    ####     ║" -ForegroundColor $g
-    Write-Host "║   #      #    # #    #   ##   #      #   #   #   #  # #   ##        #    ║" -ForegroundColor $g
-    Write-Host "║   #      #    # #    #   ##   #      #    # ###  #   ##   ##    ####     ║" -ForegroundColor $g
+    # ASCII ART: FOOTPRINTS (Centered)
+    # The logo is 52 chars wide. We use 13 spaces on left & 13 on right to equal 78 inner chars.
+    
+    Write-Host "║             ##### #### #### ##### #### #### ### #   # ##### ####             ║" -ForegroundColor $g
+    Write-Host "║             #     #  # #  #   #   #  # #  #  #  ##  #   #   #                ║" -ForegroundColor $g
+    Write-Host "║             ##### #### ####   #   #### ####  #  # # #   #   ####             ║" -ForegroundColor $g
+    Write-Host "║             #     #  # #  #   #   #    # #   #  #  ##   #       #            ║" -ForegroundColor $g
+    Write-Host "║             #     #### ####   #   #    #  # ### #   #   #   ####             ║" -ForegroundColor $g
     
     Write-Host "║                                                                              ║" -ForegroundColor $c
     
-    # TEXT: IT TEAM (Normal Text, Centered)
-    Write-Host "║                           -  I T   T E A M  -                                ║" -ForegroundColor $w
+    # TEXT: IT TEAM (Centered)
+    # Text is 20 chars wide. We use 29 spaces on left & 29 on right.
+    Write-Host "║                             -  I T   T E A M  -                              ║" -ForegroundColor $w
     
     Write-Host "║                                                                              ║" -ForegroundColor $c
     Write-Host "╚══════════════════════════════════════════════════════════════════════════════╝" -ForegroundColor $c
