@@ -64,7 +64,7 @@ do {
     Write-Host "    [1] Folder Restriction" -ForegroundColor White
     Write-Host "    [2] Browser Control" -ForegroundColor White
     Write-Host "    [3] Block Change Setting" -ForegroundColor White
-    Write-Host "    [4] Delete Chrome Profile Desktop" -ForegroundColor White
+    Write-Host "    [4] Delete Chrome Profile" -ForegroundColor White
     Write-Host ""
     
     Write-Host "    ----------------------- INSTRUCTIONS -----------------------" -ForegroundColor DarkGray
