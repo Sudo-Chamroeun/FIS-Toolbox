@@ -70,6 +70,7 @@ do {
     Write-Host "    ----------------------- INSTRUCTIONS -----------------------" -ForegroundColor DarkGray
     Write-Host "     * Run this tool as Administrator for full access." -ForegroundColor Gray
     Write-Host "     * Scripts are temporarily unlocked for this session." -ForegroundColor Gray
+    Write-Host "     * Internet connection is required make sure of it." -ForegroundColor Gray
     Write-Host "    ------------------------------------------------------------" -ForegroundColor DarkGray
     Write-Host "    [Q] Quit" -ForegroundColor Red
     Write-Host ""
