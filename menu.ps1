@@ -35,7 +35,7 @@ do {
             $TempFile = "$env:TEMP\Option2.bat"  
             
             # UPDATE THIS LINK to point to your .bat file, not menu.ps1
-            $BatUrl   = "https://github.com/Sudo-Chamroeun/FIS-Toolbox/tree/main/Browser-Controls.bat" 
+            $BatUrl   = "https://raw.githubusercontent.com/Sudo-Chamroeun/FIS-Toolbox/refs/heads/main/Browser-Controls.bat" 
 
             # 2. DOWNLOAD
             Write-Host "Downloading..." -NoNewline
