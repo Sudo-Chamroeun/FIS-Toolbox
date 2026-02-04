@@ -4,10 +4,9 @@
 #>
 
 # --- STEP 0: FIX CONNECTIVITY FOR ALL WINDOWS VERSIONS ---
-# This forces PowerShell to use TLS 1.2 (Required by GitHub)
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-# --- STEP 1: POPUP LOGIC (NON-DESTRUCTIVE) ---
+# --- STEP 1: POPUP LOGIC ---
 $WindowTitle = "Footprints IT Console"
 
 if ($Host.UI.RawUI.WindowTitle -ne $WindowTitle) {
@@ -30,13 +29,18 @@ function Show-Header {
 
     Write-Host "╔══════════════════════════════════════════════════════════════════════╗" -ForegroundColor $c
     Write-Host "║                                                                      ║" -ForegroundColor $c
-    Write-Host "║    #######  #######  #######  #######  ######   ######   #  #     #  ║" -ForegroundColor $b
-    Write-Host "║    #        #     #  #     #     #     #     #  #     #  #  ##    #  ║" -ForegroundColor $b
-    Write-Host "║    #####    #     #  #     #     #     ######   ######   #  # #   #  ║" -ForegroundColor $b
-    Write-Host "║    #        #     #  #     #     #     #        #   #    #  #  #  #  ║" -ForegroundColor $b
-    Write-Host "║    #        #######  #######     #     #        #    #   #  #   # #  ║" -ForegroundColor $b
+    # NEW LOGO: FOOTPRINTS (Spelled with letters)
+    Write-Host "║  FFFFFF   OOOOO    OOOOO   TTTTTTT  PPPPPP   RRRRRR   IIIII  N    N  ║" -ForegroundColor $b
+    Write-Host "║  F       O     O  O     O     T     P     P  R     R    I    NN   N  ║" -ForegroundColor $b
+    Write-Host "║  FFFF    O     O  O     O     T     PPPPPP   RRRRRR     I    N N  N  ║" -ForegroundColor $b
+    Write-Host "║  F       O     O  O     O     T     P        R   R      I    N  N N  ║" -ForegroundColor $b
+    Write-Host "║  F        OOOOO    OOOOO      T     P        R    R   IIIII  N    N  ║" -ForegroundColor $b
     Write-Host "║                                                                      ║" -ForegroundColor $c
-    Write-Host "║                   S C H O O L   T O O L B O X                        ║" -ForegroundColor $w
+    Write-Host "║           TTTTTTT   SSSSS      S C H O O L   T O O L S               ║" -ForegroundColor $w
+    Write-Host "║              T     S           -----------------------               ║" -ForegroundColor $c
+    Write-Host "║              T      SSSSS                                            ║" -ForegroundColor $b
+    Write-Host "║              T           S                                           ║" -ForegroundColor $b
+    Write-Host "║              T     SSSSS                                             ║" -ForegroundColor $b
     Write-Host "║                                                                      ║" -ForegroundColor $c
     Write-Host "╚══════════════════════════════════════════════════════════════════════╝" -ForegroundColor $c
     Write-Host ""
@@ -66,24 +70,24 @@ do {
             Write-Host "    > Initializing Folder Restriction..." -ForegroundColor Cyan
             
             $ToolPath = "$env:TEMP\FolderRestrictionTool.ps1"
-            $ToolUrl  = "$RepoURL/https://raw.githubusercontent.com/Sudo-Chamroeun/FIS-Toolbox/refs/heads/main/FolderRestrictionTool.ps1"
+            
+            # --- FIX IS HERE ---
+            # We combine $RepoURL + The Folder + The File Name
+            $ToolUrl  = "$RepoURL/FolderRestrictionTool.ps1"
 
             try {
-                # Added -UseBasicParsing for compatibility
                 Invoke-WebRequest -Uri $ToolUrl -OutFile $ToolPath -ErrorAction Stop -UseBasicParsing
                 
-                # Execute the downloaded script
+                # Run the tool
                 . $ToolPath
                 
                 if (Test-Path $ToolPath) { Remove-Item $ToolPath -Force -ErrorAction SilentlyContinue }
-                
-                # Wait before redrawing menu
                 Start-Sleep -Milliseconds 500
             }
             catch {
                 Write-Host "    [!] Error downloading tool." -ForegroundColor Red
-                # Prints the specific error code (e.g. 404 or TLS issue)
                 Write-Host "    Info: $($_.Exception.Message)" -ForegroundColor DarkRed
+                Write-Host "    debug: Trying to access $ToolUrl" -ForegroundColor DarkGray
                 Pause
             }
         }
