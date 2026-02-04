@@ -1,111 +1,112 @@
-# menu.ps1
-function Show-Menu {
-    Clear-Host
-    Write-Host "==============================" -ForegroundColor Cyan
-    Write-Host "   FIS IT - MASTER TOOLBOX   " -ForegroundColor White -BackgroundColor DarkBlue
-    Write-Host "==============================" -ForegroundColor Cyan
-    Write-Host "1. Folder Restriction"
-    Write-Host "2. Browser Control"
-    Write-Host "3. Delete Chrome Profiles"
-    Write-Host "4. Delete Chrome Profiles Laptop"
-    Write-Host "Q. Quit"
-    Write-Host "==============================" -ForegroundColor Cyan
+<#
+    FOOTPRINTS IT TOOLBOX - MASTER MENU
+    Hosted at: fistoolbox.automizze.us
+#>
+
+# --- STEP 1: POPUP LOGIC (NON-DESTRUCTIVE) ---
+$WindowTitle = "Footprints IT Console"
+
+# If the current window is NOT the "Footprints Console", open a new one.
+if ($Host.UI.RawUI.WindowTitle -ne $WindowTitle) {
+    Write-Host "Launching Console..." -ForegroundColor Cyan
+    
+    # Start the NEW window with the correct title and run the script
+    Start-Process powershell -ArgumentList "-NoExit", "-Command `"`$Host.UI.RawUI.WindowTitle='$WindowTitle'; irm fistoolbox.automizze.us | iex`""
+    
+    # We REMOVED the 'exit' command here, so the original window stays open.
+    # The script in THIS window stops here.
+    break
 }
 
-# This is the 'Base URL' where your raw scripts live on GitHub
-# We will update this later in Step 3
-$RepoURL = "https://raw.githubusercontent.com/YOUR_USERNAME/IT-Toolbox/main"
+# --- STEP 2: CONSOLE STYLING ---
+$Host.UI.RawUI.BackgroundColor = "DarkBlue"
+$Host.UI.RawUI.ForegroundColor = "White"
+Clear-Host 
 
+# Define your GitHub URL base here for easy updating
+$RepoURL = "https://raw.githubusercontent.com/Sudo-Chamroeun/FIS-Toolbox/refs/heads/main"
+
+function Show-Header {
+    Clear-Host
+    $c = "Cyan"   # Frame Color
+    $b = "Yellow" # Branding Color
+    $w = "White"  # Text Color
+
+    Write-Host "╔══════════════════════════════════════════════════════════════════════╗" -ForegroundColor $c
+    Write-Host "║                                                                      ║" -ForegroundColor $c
+    Write-Host "║    #######  #######  #######  #######  ######   ######   #  #     #  ║" -ForegroundColor $b
+    Write-Host "║    #        #     #  #     #     #     #     #  #     #  #  ##    #  ║" -ForegroundColor $b
+    Write-Host "║    #####    #     #  #     #     #     ######   ######   #  # #   #  ║" -ForegroundColor $b
+    Write-Host "║    #        #     #  #     #     #     #        #   #    #  #  #  #  ║" -ForegroundColor $b
+    Write-Host "║    #        #######  #######     #     #        #    #   #  #   # #  ║" -ForegroundColor $b
+    Write-Host "║                                                                      ║" -ForegroundColor $c
+    Write-Host "║                   S C H O O L   T O O L B O X                        ║" -ForegroundColor $w
+    Write-Host "║                                                                      ║" -ForegroundColor $c
+    Write-Host "╚══════════════════════════════════════════════════════════════════════╝" -ForegroundColor $c
+    Write-Host ""
+}
+
+# --- STEP 3: THE MAIN LOOP ---
 do {
-    Show-Menu
-    $input = Read-Host "Please make a selection"
+    Show-Header
+    
+    # --- THE MENU OPTIONS ---
+    Write-Host "    [1] Folder Restriction" -ForegroundColor Green
+    Write-Host "    [2] Browser Control" -ForegroundColor Green
+    Write-Host "    [3] Block Change Setting" -ForegroundColor Green
+    Write-Host "    [4] Delete Chrome Profile Desktop" -ForegroundColor DarkGray
+    Write-Host "    [5] Delete Chrome Profile Laptop" -ForegroundColor DarkGray
+    Write-Host ""
+    
+    # --- THE STATIC INSTRUCTIONS ---
+    Write-Host "    ------------------- INSTRUCTIONS -------------------" -ForegroundColor Cyan
+    Write-Host "     * Run this tool as Administrator for full access." -ForegroundColor Gray
+    Write-Host "     * Type the number of the tool you want to use." -ForegroundColor Gray
+    Write-Host "     * If a script fails, check your internet connection." -ForegroundColor Gray
+    Write-Host "    ----------------------------------------------------" -ForegroundColor Cyan
+    Write-Host "    [Q] Quit" -ForegroundColor Red
+    Write-Host ""
+
+    $input = Read-Host "    Select an option"
 
     switch ($input) {
         '1' { 
-            Write-Host "Running Drive Restriction..." -ForegroundColor Green
-            # This downloads and runs the specific script from your repo immediately
-            Invoke-Expression (Invoke-WebRequest -Uri "$RepoURL/restrict-drive.ps1" -UseBasicParsing).Content 
-            Pause
-        }
-        '2' { 
-            Write-Host "Starting Interactive Tool..." -ForegroundColor Cyan
-            
-            # 1. SETTINGS
-            # We save it to Temp
-            $TempFile = "$env:TEMP\Browser-Controls.bat"  
-            
-            # UPDATE THIS LINK to point to your .bat file, not menu.ps1
-            $BatUrl   = "https://raw.githubusercontent.com/Sudo-Chamroeun/FIS-Toolbox/refs/heads/main/Browser-Controls.bat" 
-
-            # 2. DOWNLOAD
-            Write-Host "Downloading..." -NoNewline
-            try {
-                Invoke-WebRequest -Uri $BatUrl -OutFile $TempFile -ErrorAction Stop
-                Write-Host "Done." -ForegroundColor Green
-            }
-            catch {
-                Write-Host "Error downloading! Check URL." -ForegroundColor Red
-                break 
-            }
-
-            # 3. RUN (The Fix)
-            Write-Host "Launching..."
-            Write-Host "--------------------------------"
-            
-            # cmd /c means "Run command"
-            # -Wait means "Don't continue until the user closes the batch file"
-            # -NoNewWindow means "Show the batch menu RIGHT HERE, not in a new window"
-            Start-Process "cmd.exe" -ArgumentList "/c `"$TempFile`"" -Wait -NoNewWindow
-
-            # 4. CLEANUP
-            Write-Host "--------------------------------"
-            if (Test-Path $TempFile) {
-                Remove-Item -Path $TempFile -Force
-            }
-            
-            Write-Host "Cleanup Complete." -ForegroundColor Yellow
-            Pause
-        }
-        '3' { 
-            Write-Host "Apply Delete Chrome profile" -ForegroundColor Cyan
-            
-            # 1. SETTINGS
-            # Save it as a .bat file in the temp folder
-            $TempFile = "$env:TEMP\DeleteChromeProfilesTask_Final.bat"  
-            # Your GitHub Raw Link to the .bat file
-            $BatUrl   = "https://github.com/Sudo-Chamroeun/FIS-Toolbox/tree/main/DeleteChromeProfilesTask_Final.bat" 
-
-            # 2. DOWNLOAD
-            Write-Host "Applying..." -NoNewline
-            try {
-                Invoke-WebRequest -Uri $BatUrl -OutFile $TempFile -ErrorAction Stop
-                Write-Host "Done." -ForegroundColor Green
-            }
-            catch {
-                Write-Host "Error downloading! Check URL." -ForegroundColor Red
-                break 
-            }
-
-            # 3. RUN (The Change is Here)
-            Write-Host "Executing Batch File..."
-            # We explicitly tell cmd.exe to run the file
-            # /c means "Run this and then close"
-            Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$TempFile`"" -Wait 
-
-            # 4. CLEANUP
-            if (Test-Path $TempFile) {
-                Remove-Item -Path $TempFile -Force
-            }
-            
-            Write-Host "Cleanup Complete." -ForegroundColor Yellow
-            Pause
-        }
-        'Q' { 
-            Write-Host "Exiting..." -ForegroundColor Yellow
+            Write-Host "    > Loading Drive Restriction..." -ForegroundColor Yellow
             Start-Sleep -Seconds 1
-            Clear-Host  # <--- This wipes the screen clean
-            break 
+            # Option 1 Code will go here
         }
-        Default { Write-Host "Invalid selection, try again." -ForegroundColor Red; Start-Sleep -Seconds 1 }
+        
+        '2' { 
+            Write-Host "    > Initializing Tool #2..." -ForegroundColor Yellow
+            $TempFile = "$env:TEMP\Browser-Controls.bat"  
+            $BatUrl   = "$RepoURL/Browser-Controls.bat" 
+
+            try {
+                Invoke-WebRequest -Uri $BatUrl -OutFile $TempFile -ErrorAction Stop
+                Write-Host "    > Launching Interface..." -ForegroundColor Green
+                Start-Process "cmd.exe" -ArgumentList "/c `"$TempFile`"" -Wait -NoNewWindow
+                if (Test-Path $TempFile) { Remove-Item -Path $TempFile -Force }
+            }
+            catch {
+                Write-Host "    [!] Error: Could not download file. Check $BatUrl" -ForegroundColor Red
+                Pause
+            }
+        }
+
+        '3' {
+             Write-Host "    > Checking for updates..." -ForegroundColor Yellow
+             Start-Sleep -Seconds 2
+        }
+
+        'Q' { 
+            Write-Host "    Good bye!" -ForegroundColor Cyan
+            Start-Sleep -Seconds 1
+            Stop-Process -Id $PID # Closes ONLY the console window
+        }
+
+        Default { 
+            Write-Host "    [!] Invalid selection." -ForegroundColor Red
+            Start-Sleep -Seconds 1 
+        }
     }
 } until ($input -eq 'Q')
