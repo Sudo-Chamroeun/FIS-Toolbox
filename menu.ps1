@@ -31,25 +31,28 @@ $RepoURL = "https://raw.githubusercontent.com/Sudo-Chamroeun/FIS-Toolbox/refs/he
 
 function Show-Header {
     [Console]::Clear()
-    $c = "Cyan"; $b = "Green"; $w = "White"
+    $c = "Cyan"; $g = "Green"; $w = "White"
 
+    # Width: 80 chars
     Write-Host "╔══════════════════════════════════════════════════════════════════════════════╗" -ForegroundColor $c
     Write-Host "║                                                                              ║" -ForegroundColor $c
     
-    # NEW BANNER: FOOTPRINTS (Using Letters)
-    Write-Host "║ FFFFFFF  OOOOO   OOOOO   TTTTTTT  PPPPPP   RRRRRR   IIIII  N    N  TTTTTTT ║" -ForegroundColor $b
-    Write-Host "║ F       O     O O     O     T     P     P  R     R    I    NN   N     T    ║" -ForegroundColor $b
-    Write-Host "║ FFFF    O     O O     O     T     PPPPPP   RRRRRR     I    N N  N     T    ║" -ForegroundColor $b
-    Write-Host "║ F       O     O O     O     T     P        R   R      I    N  N N     T    ║" -ForegroundColor $b
-    Write-Host "║ F        OOOOO   OOOOO      T     P        R    R   IIIII  N    N     T    ║" -ForegroundColor $b
+    # ASCII ART: FOOTPRINTS (Using *)
+    # Centered manually for balance
+    Write-Host "║    ****** ***** ***** ***** **** **** ***** * * ***** **** ║" -ForegroundColor $g
+    Write-Host "║    * * * * * * * * * * * ** * * * ║" -ForegroundColor $g
+    Write-Host "║    **** * * * * * **** **** * * * * * **** ║" -ForegroundColor $g
+    Write-Host "║    * * * * * * * * * * * ** * * ║" -ForegroundColor $g
+    Write-Host "║    * ***** ***** * * * * ***** * * * **** ║" -ForegroundColor $g
+    
     Write-Host "║                                                                              ║" -ForegroundColor $c
     
-    # SECOND LINE: SCHOOL TOOLS
-    Write-Host "║                SSSSS    SSSS   H   H   OOO    OOO   L                        ║" -ForegroundColor $w
-    Write-Host "║               S        S       H   H  O   O  O   O  L                        ║" -ForegroundColor $w
-    Write-Host "║                SSSSS    SSSS   HHHHH  O   O  O   O  L                        ║" -ForegroundColor $w
-    Write-Host "║                     S       S  H   H  O   O  O   O  L                        ║" -ForegroundColor $w
-    Write-Host "║                SSSSS    SSSS   H   H   OOO    OOO   LLLLLL                   ║" -ForegroundColor $w
+    # TEXT: SCHOOL
+    Write-Host "║                          S  C  H  O  O  L                                    ║" -ForegroundColor $w
+    
+    # TEXT: IT TEAM (Bottom)
+    Write-Host "║                          - I T   T E A M -                                   ║" -ForegroundColor $c
+    
     Write-Host "║                                                                              ║" -ForegroundColor $c
     Write-Host "╚══════════════════════════════════════════════════════════════════════════════╝" -ForegroundColor $c
     Write-Host ""
