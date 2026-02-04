@@ -43,7 +43,7 @@ function Show-Header {
     Write-Host "║             ##### #### #### ##### #### #### ### #   # ##### ####             ║" -ForegroundColor $g
     Write-Host "║             #     #  # #  #   #   #  # #  #  #  ##  #   #   #                ║" -ForegroundColor $g
     Write-Host "║             ##### #### ####   #   #### ####  #  # # #   #   ####             ║" -ForegroundColor $g
-    Write-Host "║             #     #  # #  #   #   #    # #   #  #  ##   #       #            ║" -ForegroundColor $g
+    Write-Host "║             #     #  # #  #   #   #    # #   #  #  ##   #      #             ║" -ForegroundColor $g
     Write-Host "║             #     #### ####   #   #    #  # ### #   #   #   ####             ║" -ForegroundColor $g
     
     Write-Host "║                                                                              ║" -ForegroundColor $c
