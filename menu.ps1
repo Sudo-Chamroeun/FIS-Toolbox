@@ -33,25 +33,20 @@ function Show-Header {
     [Console]::Clear()
     $c = "Cyan"; $g = "Green"; $w = "White"
 
-    # Width: 80 chars
     Write-Host "╔══════════════════════════════════════════════════════════════════════════════╗" -ForegroundColor $c
     Write-Host "║                                                                              ║" -ForegroundColor $c
     
-    # ASCII ART: FOOTPRINTS (Using *)
-    # Centered manually for balance
-    Write-Host "║    ****** ***** ***** ***** **** **** ***** * * ***** **** ║" -ForegroundColor $g
-    Write-Host "║    * * * * * * * * * * * ** * * * ║" -ForegroundColor $g
-    Write-Host "║    **** * * * * * **** **** * * * * * **** ║" -ForegroundColor $g
-    Write-Host "║    * * * * * * * * * * * ** * * ║" -ForegroundColor $g
-    Write-Host "║    * ***** ***** * * * * ***** * * * **** ║" -ForegroundColor $g
+    # ASCII ART: FOOTPRINTS (Using #)
+    Write-Host "║   ######  ####   ####  ###### #####  #####  ###  #    # ######  ####     ║" -ForegroundColor $g
+    Write-Host "║   #      #    # #    #   ##   #    # #    #  #   ##   #   ##   #         ║" -ForegroundColor $g
+    Write-Host "║   #####  #    # #    #   ##   #####  #####   #   # #  #   ##    ####     ║" -ForegroundColor $g
+    Write-Host "║   #      #    # #    #   ##   #      #   #   #   #  # #   ##        #    ║" -ForegroundColor $g
+    Write-Host "║   #      #    # #    #   ##   #      #    # ###  #   ##   ##    ####     ║" -ForegroundColor $g
     
     Write-Host "║                                                                              ║" -ForegroundColor $c
     
-    # TEXT: SCHOOL
-    Write-Host "║                          S  C  H  O  O  L                                    ║" -ForegroundColor $w
-    
-    # TEXT: IT TEAM (Bottom)
-    Write-Host "║                          - I T   T E A M -                                   ║" -ForegroundColor $c
+    # TEXT: IT TEAM (Normal Text, Centered)
+    Write-Host "║                           -  I T   T E A M  -                                ║" -ForegroundColor $w
     
     Write-Host "║                                                                              ║" -ForegroundColor $c
     Write-Host "╚══════════════════════════════════════════════════════════════════════════════╝" -ForegroundColor $c
