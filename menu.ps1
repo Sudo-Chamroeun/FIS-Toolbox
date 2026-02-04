@@ -28,12 +28,13 @@ do {
             Pause
         }
         '2' { 
-            Write-Host "Browser Controls loading..." -ForegroundColor Cyan
+            Write-Host "Starting Interactive Tool..." -ForegroundColor Cyan
             
             # 1. SETTINGS
-            # Save it as a .bat file in the temp folder
-            $TempFile = "$env:TEMP\Browser-Controls.bat"  
-            # Your GitHub Raw Link to the .bat file
+            # We save it to Temp
+            $TempFile = "$env:TEMP\Option2.bat"  
+            
+            # UPDATE THIS LINK to point to your .bat file, not menu.ps1
             $BatUrl   = "https://github.com/Sudo-Chamroeun/FIS-Toolbox/tree/main/Browser-Controls.bat" 
 
             # 2. DOWNLOAD
@@ -47,13 +48,17 @@ do {
                 break 
             }
 
-            # 3. RUN (The Change is Here)
-            Write-Host "Executing Batch File..."
-            # We explicitly tell cmd.exe to run the file
-            # /c means "Run this and then close"
-            Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$TempFile`"" -Wait 
+            # 3. RUN (The Fix)
+            Write-Host "Launching..."
+            Write-Host "--------------------------------"
+            
+            # cmd /c means "Run command"
+            # -Wait means "Don't continue until the user closes the batch file"
+            # -NoNewWindow means "Show the batch menu RIGHT HERE, not in a new window"
+            Start-Process "cmd.exe" -ArgumentList "/c `"$TempFile`"" -Wait -NoNewWindow
 
             # 4. CLEANUP
+            Write-Host "--------------------------------"
             if (Test-Path $TempFile) {
                 Remove-Item -Path $TempFile -Force
             }
