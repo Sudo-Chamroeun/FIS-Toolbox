@@ -81,7 +81,7 @@ do {
             # 1. Define where to put the tool
             $ToolPath = "$env:TEMP\FolderRestrictionTool.ps1"
             # 2. Your new RAW link (Update this!)
-            $ToolUrl  = "$RepoURLhttps:/FolderRestrictionTool.ps1"
+            $ToolUrl  = "$RepoURL/FolderRestrictionTool.ps1"
 
             try {
                 # 3. Download the single all-in-one script
