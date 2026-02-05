@@ -121,8 +121,8 @@ do {
         
         '3' { 
             Write-Host "    > Initializing Block Setting Tool..." -ForegroundColor Cyan
-            $TempFile = "$env:TEMP\block-change-setting.bat"  
-            $BatUrl   = "$RepoURL/block-change-setting.bat" 
+            $TempFile = "$env:TEMP\block-change-settingV2.bat"  
+            $BatUrl   = "$RepoURL/block-change-settingV2.bat" 
 
             try {
                 Invoke-WebRequest -Uri $BatUrl -OutFile $TempFile -ErrorAction Stop -UseBasicParsing
