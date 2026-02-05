@@ -31,7 +31,6 @@ if "%choice%"=="1" (
     reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome" /v "BrowserSignin" /t REG_DWORD /d 2 /f >nul 2>&1
     
     :: Regex Pattern for TWO domains. 
-    :: Note: The pipe symbol | must be escaped as ^| in batch files.
     reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome" /v "RestrictSigninToPattern" /t REG_SZ /d ".*@(footprintsschool|centerareducation)\.edu\.kh" /f >nul 2>&1
 
     echo [OK] Sign-in restricted to:
@@ -94,7 +93,11 @@ if "%choice%"=="4" (
     goto menu
 )
 
-if "%choice%"=="Q" (
+:: ---------------------------------------------------------
+:: EXIT LOGIC (Case Insensitive)
+:: ---------------------------------------------------------
+:: The /i switch makes it ignore case (q = Q)
+if /i "%choice%"=="Q" (
     exit
 )
 
