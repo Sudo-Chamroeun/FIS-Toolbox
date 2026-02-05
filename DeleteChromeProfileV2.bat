@@ -12,10 +12,11 @@ set "TaskName=FIS_DeleteChromeProfiles"
 set "LegacyTaskName=DeleteChromeProfilesTask"
 
 :menu
-:: Set window size slightly larger to prevent wrapping glitches
+:: Reset console color to Standard (White Text on Black Background)
+color 07
+:: Set window size
 mode con: cols=85 lines=25
 cls
-color 0B
 
 echo.
 echo  ================================================================================
@@ -29,11 +30,11 @@ echo.
 echo                          C H R O M E   M A N A G E R
 echo  ================================================================================
 echo.
-echo    [1] ENABLE Auto-Wipe
+echo    [1] ENABLE Auto-Delete-Profile
 echo        (Deletes Chrome Data on Every Restart)
 echo.
-echo    [2] DISABLE / RESET 
-echo        (Removes restrictions & Fixes legacy versions)
+echo    [2] DISABLE Auto-Delete-Profile 
+echo        (Revert back to normal)
 echo.
 echo    [Q] Quit
 echo.
@@ -127,4 +128,6 @@ pause
 goto menu
 
 :quit
+:: Reset color one last time before exiting, just in case
+color 07
 exit
