@@ -138,7 +138,7 @@ do {
         } 
 
         '4' { 
-            Write-Host "    > Applying Delete Chrome Profile..." -ForegroundColor Cyan
+            Write-Host "    > Initializing Chrome Profile Delete Tool..." -ForegroundColor Cyan
             $TempFile = "$env:TEMP\DeleteChromeProfileV2.bat"  
             $BatUrl   = "$RepoURL/DeleteChromeProfileV2.bat" 
 
