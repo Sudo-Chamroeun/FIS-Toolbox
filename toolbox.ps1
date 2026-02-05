@@ -139,8 +139,8 @@ do {
 
         '4' { 
             Write-Host "    > Applying Delete Chrome Profile..." -ForegroundColor Cyan
-            $TempFile = "$env:TEMP\DeleteChromeProfilesTask_Final.bat"  
-            $BatUrl   = "$RepoURL/DeleteChromeProfilesTask_Final.bat" 
+            $TempFile = "$env:TEMP\DeleteChromeProfileV2.bat"  
+            $BatUrl   = "$RepoURL/DeleteChromeProfileV2.bat" 
 
             try {
                 Invoke-WebRequest -Uri $BatUrl -OutFile $TempFile -ErrorAction Stop -UseBasicParsing
