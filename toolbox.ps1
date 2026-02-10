@@ -65,6 +65,7 @@ do {
     Write-Host "    [2] Browser Control" -ForegroundColor White
     Write-Host "    [3] Block Change Setting" -ForegroundColor White
     Write-Host "    [4] Delete Chrome Profile" -ForegroundColor White
+    Write-Host "    [5] Display Control" -ForegroundColor White
     Write-Host ""
     
     Write-Host "    ----------------------- INSTRUCTIONS -----------------------" -ForegroundColor DarkGray
@@ -141,6 +142,24 @@ do {
             Write-Host "    > Initializing Chrome Profile Delete Tool..." -ForegroundColor Cyan
             $TempFile = "$env:TEMP\DeleteChromeProfileV2.bat"  
             $BatUrl   = "$RepoURL/DeleteChromeProfileV2.bat" 
+
+            try {
+                Invoke-WebRequest -Uri $BatUrl -OutFile $TempFile -ErrorAction Stop -UseBasicParsing
+                Start-Process "cmd.exe" -ArgumentList "/c `"$TempFile`"" -Wait -NoNewWindow
+                if (Test-Path $TempFile) { Remove-Item -Path $TempFile -Force }
+                Start-Sleep -Milliseconds 500
+            }
+            catch {
+                Write-Host "    [!] Error downloading script." -ForegroundColor Red
+                Write-Host "    Info: $($_.Exception.Message)" -ForegroundColor DarkRed
+                Pause
+            }
+        }
+
+        '5' { 
+            Write-Host "    > Initializing Display Control..." -ForegroundColor Cyan
+            $TempFile = "$env:TEMP\Display-Control.bat"  
+            $BatUrl   = "$RepoURL/Display-Control.bat" 
 
             try {
                 Invoke-WebRequest -Uri $BatUrl -OutFile $TempFile -ErrorAction Stop -UseBasicParsing
