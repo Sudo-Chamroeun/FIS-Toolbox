@@ -17,7 +17,7 @@ $WindowTitle = "Footprints IT Console"
 if ($Host.UI.RawUI.WindowTitle -ne $WindowTitle) {
     Write-Host "Launching Console..." -ForegroundColor Cyan
     # We pass the execution policy into the new window as well
-    Start-Process powershell -ArgumentList "-NoExit", "-ExecutionPolicy Bypass", "-Command `"`$Host.UI.RawUI.WindowTitle='$WindowTitle'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm fistoolbox.automizze.us | iex`""
+    Start-Process powershell -ArgumentList "-NoExit", "-ExecutionPolicy Bypass", "-Command `"`$Host.UI.RawUI.WindowTitle='$WindowTitle'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm security.footprints.work | iex`""
     break
 }
 
