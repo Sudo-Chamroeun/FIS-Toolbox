@@ -174,6 +174,46 @@ do {
             }
         }
 
+        '6' { 
+            # 1. Setup paths
+            Write-Host "    > Initializing Office Removal Tool..." -ForegroundColor Cyan
+            $ExeFile = "$env:TEMP\Office-Removal-Tool.exe"
+            $ExeUrl  = "$RepoURL/Office-Removal-Tool.exe"
+
+            try {
+                # 2. Download the EXE
+                Write-Host "    > Downloading tool..." -NoNewline
+                Invoke-WebRequest -Uri $ExeUrl -OutFile $ExeFile -ErrorAction Stop -UseBasicParsing
+                Write-Host " [OK]" -ForegroundColor Green
+
+                # 3. Message to User
+                Write-Host "    > Launching Application..." -ForegroundColor Yellow
+                Write-Host "    --------------------------------------------------" -ForegroundColor Gray
+                Write-Host "    [INFO] The menu is paused." -ForegroundColor Gray
+                Write-Host "    [INFO] Please use the Office Tool window." -ForegroundColor Gray
+                Write-Host "    [INFO] Close the tool to return to this menu." -ForegroundColor Gray
+                Write-Host "    --------------------------------------------------" -ForegroundColor Gray
+                
+                # 4. RUN AND WAIT (The Magic Trick)
+                # The -Wait switch forces PowerShell to pause until the .exe is closed.
+                Start-Process -FilePath $ExeFile -Wait -NoNewWindow
+                
+                # 5. Cleanup (Delete the .exe after use to keep PC clean)
+                if (Test-Path $ExeFile) { 
+                    Remove-Item -Path $ExeFile -Force 
+                }
+                
+                Write-Host "    > Tool closed. Returning..." -ForegroundColor Green
+                Start-Sleep -Seconds 1
+            }
+            catch {
+                Write-Host " [FAILED]" -ForegroundColor Red
+                Write-Host "    [!] Error downloading or running the tool." -ForegroundColor Red
+                Write-Host "    Info: $($_.Exception.Message)" -ForegroundColor DarkRed
+                Pause
+            }
+        }        
+
         'Q' { 
             Write-Host "    Closing..." -ForegroundColor Cyan
             Start-Sleep -Seconds 1
