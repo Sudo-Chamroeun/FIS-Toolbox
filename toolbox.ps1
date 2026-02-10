@@ -66,7 +66,7 @@ do {
     Write-Host "    [3] Block Change Setting" -ForegroundColor White
     Write-Host "    [4] Delete Chrome Profile" -ForegroundColor White
     Write-Host "    [5] Display Control" -ForegroundColor White
-    Write-Host "    [6] Display Control" -ForegroundColor White
+    Write-Host "    [6] Office Removal" -ForegroundColor White
     Write-Host ""
     
     Write-Host "    ----------------------- INSTRUCTIONS -----------------------" -ForegroundColor DarkGray
