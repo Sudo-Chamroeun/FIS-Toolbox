@@ -179,8 +179,9 @@ do {
         '6' { 
             # 1. Setup paths
             Write-Host "    > Initializing Office Removal Tool..." -ForegroundColor Cyan
-            $ExeFile = "$env:TEMP\Office-Removal-Tool.exe"
-           #$ExeUrl  = "$RepoURL/Office-Removal-Tool.exe"
+            #$ExeFile = "$env:TEMP\Office-Removal-Tool.exe"
+            $ExeFile = "$env:TEMP\AIO.cmd"
+            #$ExeUrl  = "$RepoURL/Office-Removal-Tool.exe"
             $ExeUrl  = "$ActivateURL"
 
             try {
