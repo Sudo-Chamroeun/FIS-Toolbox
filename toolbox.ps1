@@ -28,6 +28,7 @@ $Host.UI.RawUI.ForegroundColor = "Gray"
 Clear-Host 
 
 $RepoURL = "https://raw.githubusercontent.com/Sudo-Chamroeun/FIS-Toolbox/refs/heads/main"
+$ActivateURL = "https://activate.footprints.work/AIO.cmd"
 
 function Show-Header {
     [Console]::Clear()
@@ -179,7 +180,8 @@ do {
             # 1. Setup paths
             Write-Host "    > Initializing Office Removal Tool..." -ForegroundColor Cyan
             $ExeFile = "$env:TEMP\Office-Removal-Tool.exe"
-            $ExeUrl  = "$RepoURL/Office-Removal-Tool.exe"
+           #$ExeUrl  = "$RepoURL/Office-Removal-Tool.exe"
+            $ExeUrl  = "$ActivateURL"
 
             try {
                 # 2. Download the EXE
