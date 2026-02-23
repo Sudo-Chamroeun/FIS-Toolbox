@@ -28,7 +28,7 @@ $Host.UI.RawUI.ForegroundColor = "Gray"
 Clear-Host 
 
 $RepoURL = "https://raw.githubusercontent.com/Sudo-Chamroeun/FIS-Toolbox/refs/heads/main"
-$ActivateURL = "https://activate.footprints.work/AIO.cmd"
+$ActivateURL = "https://activate.footprints.work"
 
 function Show-Header {
     [Console]::Clear()
@@ -182,7 +182,7 @@ do {
             #$ExeFile = "$env:TEMP\Office-Removal-Tool.exe"
             $ExeFile = "$env:TEMP\AIO.cmd"
             #$ExeUrl  = "$RepoURL/Office-Removal-Tool.exe"
-            $ExeUrl  = "$ActivateURL"
+            $ExeUrl  = "$ActivateURL/AIO.cmd"
 
             try {
                 # 2. Download the EXE
