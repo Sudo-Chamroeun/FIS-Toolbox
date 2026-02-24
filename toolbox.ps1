@@ -176,36 +176,42 @@ do {
             }
         }
 
-        '6' { 
-            # 1. Setup paths
+       '6' { 
             Write-Host "    > Initializing Office Removal Tool..." -ForegroundColor Cyan
-            $ExeFile = "$env:TEMP\Office-Removal-Tool.exe"
-            # $ExeFile = "$env:TEMP\AIO.cmd"
+            
+            # 1. Setup paths (Using ProgramData so it works for ALL users)
+            $ToolDir = "$env:ProgramData\Footprints_Tools"
+            $ExeFile = "$ToolDir\Office-Removal-Tool.exe"
             $ExeUrl  = "$RepoURL/Office-Removal-Tool.exe"
-            # $ExeUrl  = "$ActivateURL/AIO.cmd"
+
+            # Create the Footprints directory if it doesn't exist yet
+            if (-not (Test-Path $ToolDir)) {
+                New-Item -ItemType Directory -Path $ToolDir | Out-Null
+            }
 
             try {
-                # 2. Download the EXE
-                Write-Host "    > Downloading tool..." -NoNewline
-                Invoke-WebRequest -Uri $ExeUrl -OutFile $ExeFile -ErrorAction Stop -UseBasicParsing
-                Write-Host " [OK]" -ForegroundColor Green
+                # 2. Check if file exists (Skip download if we already have it)
+                if (Test-Path $ExeFile) {
+                    Write-Host "    > Tool found locally. Skipping download..." -ForegroundColor Green
+                } else {
+                    Write-Host "    > Downloading tool (First time setup)..." -NoNewline
+                    Invoke-WebRequest -Uri $ExeUrl -OutFile $ExeFile -ErrorAction Stop -UseBasicParsing
+                    Write-Host " [OK]" -ForegroundColor Green
+                }
 
                 # 3. Message to User
                 Write-Host "    > Launching Application..." -ForegroundColor Yellow
                 Write-Host "    --------------------------------------------------" -ForegroundColor Gray
                 Write-Host "    [INFO] The menu is paused." -ForegroundColor Gray
-                Write-Host "    [INFO] Please use the Office Tool window." -ForegroundColor Gray
+                Write-Host "    [INFO] If prompted, enter Admin credentials." -ForegroundColor Gray
                 Write-Host "    [INFO] Close the tool to return to this menu." -ForegroundColor Gray
                 Write-Host "    --------------------------------------------------" -ForegroundColor Gray
                 
-                # 4. RUN AND WAIT (The Magic Trick)
-                # The -Wait switch forces PowerShell to pause until the .exe is closed.
+                # 4. RUN AND WAIT
+                # If the user is standard, the EXE itself will trigger the UAC prompt for credentials.
                 Start-Process -FilePath $ExeFile -Wait -NoNewWindow
                 
-                # 5. Cleanup (Delete the .exe after use to keep PC clean)
-                if (Test-Path $ExeFile) { 
-                    Remove-Item -Path $ExeFile -Force 
-                }
+                # Note: We removed the delete/cleanup step here so the file stays cached for next time!
                 
                 Write-Host "    > Tool closed. Returning..." -ForegroundColor Green
                 Start-Sleep -Seconds 1
@@ -216,7 +222,7 @@ do {
                 Write-Host "    Info: $($_.Exception.Message)" -ForegroundColor DarkRed
                 Pause
             }
-        }        
+        }       
 
         'Q' { 
             Write-Host "    Closing..." -ForegroundColor Cyan
