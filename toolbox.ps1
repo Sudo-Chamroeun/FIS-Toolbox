@@ -203,15 +203,13 @@ do {
                 Write-Host "    > Launching Application..." -ForegroundColor Yellow
                 Write-Host "    --------------------------------------------------" -ForegroundColor Gray
                 Write-Host "    [INFO] The menu is paused." -ForegroundColor Gray
-                Write-Host "    [INFO] If prompted, enter Admin credentials." -ForegroundColor Gray
+                Write-Host "    [INFO] PLEASE ENTER ADMIN PASSWORD in the pop-up." -ForegroundColor Gray
                 Write-Host "    [INFO] Close the tool to return to this menu." -ForegroundColor Gray
                 Write-Host "    --------------------------------------------------" -ForegroundColor Gray
                 
-                # 4. RUN AND WAIT
-                # If the user is standard, the EXE itself will trigger the UAC prompt for credentials.
-                Start-Process -FilePath $ExeFile -Wait -NoNewWindow
-                
-                # Note: We removed the delete/cleanup step here so the file stays cached for next time!
+                # 4. RUN AND WAIT (THE FIX)
+                # -Verb RunAs forces the Windows Admin prompt to appear on screen.
+                Start-Process -FilePath $ExeFile -Verb RunAs -Wait
                 
                 Write-Host "    > Tool closed. Returning..." -ForegroundColor Green
                 Start-Sleep -Seconds 1
@@ -222,7 +220,7 @@ do {
                 Write-Host "    Info: $($_.Exception.Message)" -ForegroundColor DarkRed
                 Pause
             }
-        }       
+        }      
 
         'Q' { 
             Write-Host "    Closing..." -ForegroundColor Cyan
