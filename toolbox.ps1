@@ -176,40 +176,29 @@ do {
             }
         }
 
-       '6' { 
+        '6' { 
             Write-Host "    > Initializing Office Removal Tool..." -ForegroundColor Cyan
-            
-            # 1. Setup paths (Using ProgramData so it works for ALL users)
-            $ToolDir = "$env:ProgramData\Footprints_Tools"
-            $ExeFile = "$ToolDir\Office-Removal-Tool.exe"
+            $ExeFile = "$env:TEMP\Office-Removal-Tool.exe"
             $ExeUrl  = "$RepoURL/Office-Removal-Tool.exe"
 
-            # Create the Footprints directory if it doesn't exist yet
-            if (-not (Test-Path $ToolDir)) {
-                New-Item -ItemType Directory -Path $ToolDir | Out-Null
-            }
-
             try {
-                # 2. Check if file exists (Skip download if we already have it)
-                if (Test-Path $ExeFile) {
-                    Write-Host "    > Tool found locally. Skipping download..." -ForegroundColor Green
-                } else {
-                    Write-Host "    > Downloading tool (First time setup)..." -NoNewline
-                    Invoke-WebRequest -Uri $ExeUrl -OutFile $ExeFile -ErrorAction Stop -UseBasicParsing
-                    Write-Host " [OK]" -ForegroundColor Green
-                }
+                Write-Host "    > Downloading tool..." -NoNewline
+                Invoke-WebRequest -Uri $ExeUrl -OutFile $ExeFile -ErrorAction Stop -UseBasicParsing
+                Write-Host " [OK]" -ForegroundColor Green
 
-                # 3. Message to User
                 Write-Host "    > Launching Application..." -ForegroundColor Yellow
                 Write-Host "    --------------------------------------------------" -ForegroundColor Gray
                 Write-Host "    [INFO] The menu is paused." -ForegroundColor Gray
-                Write-Host "    [INFO] PLEASE ENTER ADMIN PASSWORD in the pop-up." -ForegroundColor Gray
                 Write-Host "    [INFO] Close the tool to return to this menu." -ForegroundColor Gray
                 Write-Host "    --------------------------------------------------" -ForegroundColor Gray
                 
-                # 4. RUN AND WAIT (THE FIX)
-                # -Verb RunAs forces the Windows Admin prompt to appear on screen.
-                Start-Process -FilePath $ExeFile -Verb RunAs -Wait
+                # Runs perfectly because the parent PowerShell window is already Admin
+                Start-Process -FilePath $ExeFile -Wait
+                
+                # Clean up the file so we don't leave clutter
+                if (Test-Path $ExeFile) { 
+                    Remove-Item -Path $ExeFile -Force 
+                }
                 
                 Write-Host "    > Tool closed. Returning..." -ForegroundColor Green
                 Start-Sleep -Seconds 1
