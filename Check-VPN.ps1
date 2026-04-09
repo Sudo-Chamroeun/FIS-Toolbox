@@ -16,7 +16,7 @@ $KeywordArray = $VPNKeywords -split '\|'
 # ---------------------------------------------------------
 Write-Host "[1] Checking Active Installations..." -ForegroundColor Yellow
 $Installed = @()
-$ActiveKeywords = @() # Memory array to hide leftovers of actively installed apps
+$ActiveKeywords = @() 
 
 $UninstallKeys = @(
     "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
@@ -25,14 +25,12 @@ $UninstallKeys = @(
 )
 
 foreach ($Key in $UninstallKeys) {
-    # (?i) makes the regex case-insensitive
     $Apps = Get-ItemProperty $Key -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -match "(?i)$VPNKeywords" }
     if ($Apps) { 
         foreach ($App in $Apps) {
             $Name = $App.DisplayName
             if ($Installed -notcontains $Name) { $Installed += $Name }
             
-            # Figure out exactly which keyword triggered this to deduplicate later
             foreach ($KW in $KeywordArray) {
                 if ($Name -match "(?i)$KW" -and $ActiveKeywords -notcontains $KW) {
                     $ActiveKeywords += $KW
@@ -68,7 +66,6 @@ foreach ($Path in $SearchPaths) {
         foreach ($Folder in $Folders) {
             $IsDuplicate = $false
             
-            # If this folder matches a VPN that is CURRENTLY installed, ignore it (Deduplication)
             foreach ($ActiveKW in $ActiveKeywords) {
                 if ($Folder.Name -match "(?i)$ActiveKW") {
                     $IsDuplicate = $true
@@ -107,37 +104,50 @@ foreach ($Manifest in $ManifestPaths) {
     $Files = Get-ChildItem -Path $Manifest -ErrorAction SilentlyContinue
     foreach ($File in $Files) {
         $ExtDir = $File.Directory.FullName
-        
-        # 1. Check the main manifest file raw text
-        $ManifestRaw = Get-Content $File.FullName -Raw -ErrorAction SilentlyContinue
-        $IsMatch = ($ManifestRaw -match "(?i)$VPNKeywords")
-        
-        # 2. If no match yet, dig into the localized language files (The fix for tricky extensions)
-        if (-not $IsMatch) {
-            $LocaleFiles = Get-ChildItem -Path "$ExtDir\_locales" -Filter "messages.json" -Recurse -ErrorAction SilentlyContinue
-            foreach ($Locale in $LocaleFiles) {
-                $LocaleRaw = Get-Content $Locale.FullName -Raw -ErrorAction SilentlyContinue
-                if ($LocaleRaw -match "(?i)$VPNKeywords") {
-                    $IsMatch = $true
+        $RawText = Get-Content $File.FullName -Raw -ErrorAction SilentlyContinue
+        if (-not $RawText) { continue }
+
+        $ExtName = ""
+        $ExtDesc = ""
+
+        # Extract EXACTLY the name and description lines (Ignores random background hashes)
+        if ($RawText -match '"name"\s*:\s*"([^"]+)"') { $ExtName = $matches[1] }
+        if ($RawText -match '"description"\s*:\s*"([^"]+)"') { $ExtDesc = $matches[1] }
+
+        # Resolve localized names (Translates __MSG_xxx__ into the real name)
+        if ($ExtName -match "__MSG_(.*)__") {
+            $CleanKey = $matches[1]
+            $LocFiles = Get-ChildItem -Path "$ExtDir\_locales" -Filter "messages.json" -Recurse -ErrorAction SilentlyContinue
+            foreach ($Loc in $LocFiles) {
+                $LocRaw = Get-Content $Loc.FullName -Raw -ErrorAction SilentlyContinue
+                # Regex magic to dig into the translation file and grab the true text
+                if ($LocRaw -match "(?s)`"$CleanKey`"\s*:\s*\{.*?`"message`"\s*:\s*`"([^`"]+)`"") {
+                    $ExtName = $matches[1]
                     break
                 }
             }
         }
 
-        # 3. If we caught it, log it
-        if ($IsMatch) {
+        # Resolve localized descriptions
+        if ($ExtDesc -match "__MSG_(.*)__") {
+            $CleanKey = $matches[1]
+            $LocFiles = Get-ChildItem -Path "$ExtDir\_locales" -Filter "messages.json" -Recurse -ErrorAction SilentlyContinue
+            foreach ($Loc in $LocFiles) {
+                $LocRaw = Get-Content $Loc.FullName -Raw -ErrorAction SilentlyContinue
+                if ($LocRaw -match "(?s)`"$CleanKey`"\s*:\s*\{.*?`"message`"\s*:\s*`"([^`"]+)`"") {
+                    $ExtDesc = $matches[1]
+                    break
+                }
+            }
+        }
+
+        # Now check if the TRUE name or description contains our VPN keywords
+        if ($ExtName -match "(?i)$VPNKeywords" -or $ExtDesc -match "(?i)$VPNKeywords") {
             $BrowserName = if ($ExtDir -match "Chrome") {"Chrome"} elseif ($ExtDir -match "Brave") {"Brave"} else {"Edge"}
             
-            # Try to grab the readable name
-            $ExtName = "Unknown/Hidden VPN Extension"
-            try {
-                $Json = $ManifestRaw | ConvertFrom-Json -ErrorAction SilentlyContinue
-                if ($Json.name -notmatch "__MSG_") {
-                    $ExtName = $Json.name
-                } else {
-                    $ExtName = "Localized VPN Extension (ID: $($File.Directory.Parent.Name))"
-                }
-            } catch {}
+            if (-not $ExtName -or $ExtName -match "__MSG_") { 
+                $ExtName = "Hidden VPN Extension (ID: $($File.Directory.Parent.Name))" 
+            }
 
             $ResultString = "[$BrowserName] $ExtName"
             if ($FoundExtensions -notcontains $ResultString) {
