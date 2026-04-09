@@ -68,6 +68,7 @@ do {
     Write-Host "    [4] Delete Chrome Profile" -ForegroundColor White
     Write-Host "    [5] Display Control" -ForegroundColor White
     Write-Host "    [6] Office Removal" -ForegroundColor White
+    Write-Host "    [7] Check VPN" -ForegroundColor White
     Write-Host ""
     
     Write-Host "    ----------------------- INSTRUCTIONS -----------------------" -ForegroundColor DarkGray
@@ -209,8 +210,34 @@ do {
                 Write-Host "    Info: $($_.Exception.Message)" -ForegroundColor DarkRed
                 Pause
             }
-        }      
+        }
+        '7' { 
+            Write-Host "    > Initializing VPN Detective..." -ForegroundColor Cyan
+            $PsFile = "$env:TEMP\Check-VPN.ps1"
+            $PsUrl  = "$RepoURL/Check-VPN.ps1"
 
+            try {
+                Write-Host "    > Downloading scanner..." -NoNewline
+                Invoke-WebRequest -Uri $PsUrl -OutFile $PsFile -ErrorAction Stop -UseBasicParsing
+                Write-Host " [OK]" -ForegroundColor Green
+                
+                # Launch the PowerShell script and wait for the user to close it
+                Start-Process powershell.exe -ArgumentList "-ExecutionPolicy Bypass -NoProfile -File `"$PsFile`"" -Wait
+                
+                if (Test-Path $PsFile) { 
+                    Remove-Item -Path $PsFile -Force 
+                }
+                
+                Write-Host "    > Scan closed. Returning to menu..." -ForegroundColor Green
+                Start-Sleep -Seconds 1
+            }
+            catch {
+                Write-Host " [FAILED]" -ForegroundColor Red
+                Write-Host "    [!] Error downloading or running the tool." -ForegroundColor Red
+                Write-Host "    Info: $($_.Exception.Message)" -ForegroundColor DarkRed
+                Pause
+            }
+        }
         'Q' { 
             Write-Host "    Closing..." -ForegroundColor Cyan
             Start-Sleep -Seconds 1
