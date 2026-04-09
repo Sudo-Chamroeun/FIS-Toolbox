@@ -8,7 +8,7 @@ Write-Host "========================================================" -Foregroun
 Write-Host ""
 
 # List of common VPN/Proxy keywords to hunt for
-$VPNKeywords = "VPN|NordVPN|ExpressVPN|Proton|Windscribe|Hotspot Shield|CyberGhost|TunnelBear|Surfshark|Psiphon|Betternet|ZenMate|SetupVPN|TouchVPN|Hola"
+$VPNKeywords = "VPN|NordVPN|ExpressVPN|Proton|Windscribe|Hotspot Shield|CyberGhost|TunnelBear|Surfshark|Psiphon|Betternet|ZenMate|SetupVPN|TouchVPN|Hola|Warp|Cloudflare"
 $KeywordArray = $VPNKeywords -split '\|'
 
 # ---------------------------------------------------------
