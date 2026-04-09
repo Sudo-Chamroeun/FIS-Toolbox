@@ -9,12 +9,15 @@ Write-Host ""
 
 # List of common VPN/Proxy keywords to hunt for
 $VPNKeywords = "VPN|NordVPN|ExpressVPN|Proton|Windscribe|Hotspot Shield|CyberGhost|TunnelBear|Surfshark|Psiphon|Betternet|ZenMate|SetupVPN|TouchVPN|Hola"
+$KeywordArray = $VPNKeywords -split '\|'
 
 # ---------------------------------------------------------
 # STEP 1: CHECK ACTIVE INSTALLATIONS (Registry)
 # ---------------------------------------------------------
 Write-Host "[1] Checking Active Installations..." -ForegroundColor Yellow
 $Installed = @()
+$ActiveKeywords = @() # Memory array to hide leftovers of actively installed apps
+
 $UninstallKeys = @(
     "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
     "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
@@ -22,12 +25,25 @@ $UninstallKeys = @(
 )
 
 foreach ($Key in $UninstallKeys) {
-    $Apps = Get-ItemProperty $Key -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -match $VPNKeywords }
-    if ($Apps) { $Installed += $Apps.DisplayName }
+    # (?i) makes the regex case-insensitive
+    $Apps = Get-ItemProperty $Key -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -match "(?i)$VPNKeywords" }
+    if ($Apps) { 
+        foreach ($App in $Apps) {
+            $Name = $App.DisplayName
+            if ($Installed -notcontains $Name) { $Installed += $Name }
+            
+            # Figure out exactly which keyword triggered this to deduplicate later
+            foreach ($KW in $KeywordArray) {
+                if ($Name -match "(?i)$KW" -and $ActiveKeywords -notcontains $KW) {
+                    $ActiveKeywords += $KW
+                }
+            }
+        }
+    }
 }
 
 if ($Installed.Count -gt 0) {
-    $Installed | Select-Object -Unique | ForEach-Object { Write-Host "    [!] FOUND INSTALLED: $_" -ForegroundColor Red }
+    $Installed | ForEach-Object { Write-Host "    [!] FOUND INSTALLED: $_" -ForegroundColor Red }
 } else {
     Write-Host "    [OK] No active VPN installations found." -ForegroundColor Green
 }
@@ -47,13 +63,29 @@ $SearchPaths = @(
 )
 
 foreach ($Path in $SearchPaths) {
-    $Folders = Get-Item $Path -ErrorAction SilentlyContinue | Where-Object { $_.Name -match $VPNKeywords }
-    if ($Folders) { $Leftovers += $Folders.FullName }
+    $Folders = Get-Item $Path -ErrorAction SilentlyContinue | Where-Object { $_.Name -match "(?i)$VPNKeywords" }
+    if ($Folders) {
+        foreach ($Folder in $Folders) {
+            $IsDuplicate = $false
+            
+            # If this folder matches a VPN that is CURRENTLY installed, ignore it (Deduplication)
+            foreach ($ActiveKW in $ActiveKeywords) {
+                if ($Folder.Name -match "(?i)$ActiveKW") {
+                    $IsDuplicate = $true
+                    break
+                }
+            }
+            
+            if (-not $IsDuplicate -and $Leftovers -notcontains $Folder.FullName) { 
+                $Leftovers += $Folder.FullName 
+            }
+        }
+    }
 }
 
 if ($Leftovers.Count -gt 0) {
     Write-Host "    [!] SUSPICIOUS LEFTOVERS FOUND (User may have recently uninstalled):" -ForegroundColor Magenta
-    $Leftovers | Select-Object -Unique | ForEach-Object { Write-Host "    -> $_" -ForegroundColor DarkGray }
+    $Leftovers | ForEach-Object { Write-Host "    -> $_" -ForegroundColor DarkGray }
 } else {
     Write-Host "    [OK] No obvious leftover folders found." -ForegroundColor Green
 }
@@ -65,7 +97,6 @@ Write-Host ""
 Write-Host "[3] Checking Browser Extensions..." -ForegroundColor Yellow
 $FoundExtensions = @()
 
-# Look for manifest.json files deep in the extension folders
 $ManifestPaths = @(
     "C:\Users\*\AppData\Local\Google\Chrome\User Data\*\Extensions\*\*\manifest.json",
     "C:\Users\*\AppData\Local\BraveSoftware\Brave-Browser\User Data\*\Extensions\*\*\manifest.json",
@@ -75,18 +106,49 @@ $ManifestPaths = @(
 foreach ($Manifest in $ManifestPaths) {
     $Files = Get-ChildItem -Path $Manifest -ErrorAction SilentlyContinue
     foreach ($File in $Files) {
-        # Read the JSON file quickly to find the extension name
-        $Content = Get-Content $File.FullName -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
-        if ($Content.name -match $VPNKeywords) {
-            # Extract browser name from the path
-            $BrowserName = if ($File.FullName -match "Chrome") {"Chrome"} elseif ($File.FullName -match "Brave") {"Brave"} else {"Edge"}
-            $FoundExtensions += "[$BrowserName] $($Content.name)"
+        $ExtDir = $File.Directory.FullName
+        
+        # 1. Check the main manifest file raw text
+        $ManifestRaw = Get-Content $File.FullName -Raw -ErrorAction SilentlyContinue
+        $IsMatch = ($ManifestRaw -match "(?i)$VPNKeywords")
+        
+        # 2. If no match yet, dig into the localized language files (The fix for tricky extensions)
+        if (-not $IsMatch) {
+            $LocaleFiles = Get-ChildItem -Path "$ExtDir\_locales" -Filter "messages.json" -Recurse -ErrorAction SilentlyContinue
+            foreach ($Locale in $LocaleFiles) {
+                $LocaleRaw = Get-Content $Locale.FullName -Raw -ErrorAction SilentlyContinue
+                if ($LocaleRaw -match "(?i)$VPNKeywords") {
+                    $IsMatch = $true
+                    break
+                }
+            }
+        }
+
+        # 3. If we caught it, log it
+        if ($IsMatch) {
+            $BrowserName = if ($ExtDir -match "Chrome") {"Chrome"} elseif ($ExtDir -match "Brave") {"Brave"} else {"Edge"}
+            
+            # Try to grab the readable name
+            $ExtName = "Unknown/Hidden VPN Extension"
+            try {
+                $Json = $ManifestRaw | ConvertFrom-Json -ErrorAction SilentlyContinue
+                if ($Json.name -notmatch "__MSG_") {
+                    $ExtName = $Json.name
+                } else {
+                    $ExtName = "Localized VPN Extension (ID: $($File.Directory.Parent.Name))"
+                }
+            } catch {}
+
+            $ResultString = "[$BrowserName] $ExtName"
+            if ($FoundExtensions -notcontains $ResultString) {
+                $FoundExtensions += $ResultString
+            }
         }
     }
 }
 
 if ($FoundExtensions.Count -gt 0) {
-    $FoundExtensions | Select-Object -Unique | ForEach-Object { Write-Host "    [!] FOUND EXTENSION: $_" -ForegroundColor Red }
+    $FoundExtensions | ForEach-Object { Write-Host "    [!] FOUND EXTENSION: $_" -ForegroundColor Red }
 } else {
     Write-Host "    [OK] No VPN browser extensions detected." -ForegroundColor Green
 }
