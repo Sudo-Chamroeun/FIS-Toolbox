@@ -29,7 +29,7 @@ This toolbox provides a single unified command-line interface (CLI) to deploy es
 To launch the full IT Console on any Windows machine, open an **Administrator PowerShell** window and run the following command:
 
 ```powershell
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm security.footprints.work | iex
+irm security.footprints.work | iex
 ```
 
 macOS Deployment (Standalone VPN Scanner)
