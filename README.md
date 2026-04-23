@@ -30,7 +30,7 @@ To launch the full IT Console on any Windows machine, open an **Administrator Po
 
 ```powershell
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm security.footprints.work | iex
-
+```
 
 macOS Deployment (Standalone VPN Scanner)
 To scan a student's MacBook for installed VPNs, network profiles, and browser extensions without leaving a file behind, open the macOS Terminal and run:
@@ -40,8 +40,6 @@ zsh -c "$(curl -fsSL [https://mac-checker.footprints.work/Check-VPN.sh](https://
 ⚠️ System Requirements & Notes
 Operating System: Windows 10/11 (for the Master Menu) / macOS 12+ (for Mac tools).
 
-Permissions: The Master Menu must be run as an Administrator to successfully apply system-level changes (like registry edits or restricted folder deletion).
-
-Network: Tools will fail to load if GitHub raw content servers (raw.githubusercontent.com) are blocked on the network.
-
-Developed and maintained by the Footprints International School IT Department.
+. Permissions: The Master Menu must be run as an Administrator to successfully apply system-level changes (like registry edits or restricted folder deletion).
+. Network: Tools will fail to load if GitHub raw content servers (raw.githubusercontent.com) are blocked on the network.
+. Developed and maintained by the Footprints International School IT Department.
