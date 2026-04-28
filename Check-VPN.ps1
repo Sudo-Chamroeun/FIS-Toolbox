@@ -124,7 +124,7 @@ foreach ($Manifest in $ManifestPaths) {
         if ($RawText -match '"name"\s*:\s*"([^"]+)"') { $ExtName = $matches[1] }
         if ($RawText -match '"description"\s*:\s*"([^"]+)"') { $ExtDesc = $matches[1] }
 
-        # Safely resolve localized names without Recurse or Backticks
+        # Safely resolve localized names
         if ($ExtName -match "__MSG_(.*)__") {
             $CleanKey = $matches[1]
             $LocFiles = Get-ChildItem -Path "$ExtDir\_locales\*\messages.json" -ErrorAction SilentlyContinue
@@ -186,13 +186,17 @@ Write-Host ""
 Write-Host "========================================================" -ForegroundColor Cyan
 Write-Host "Scan Complete." -ForegroundColor Cyan
 
-# Grab ONLY the primary network adapter using a fast WMI filter
-$PrimaryNet = Get-WmiObject Win32_NetworkAdapterConfiguration -Filter "IPEnabled = True AND DefaultIPGateway IS NOT NULL" -ErrorAction SilentlyContinue | Select-Object -First 1
+# FIXED: Grab ONLY the primary network adapter properly handling the gateway array
+$PrimaryNet = Get-WmiObject Win32_NetworkAdapterConfiguration -ErrorAction SilentlyContinue | Where-Object { $_.IPEnabled -eq $true -and $_.DefaultIPGateway } | Select-Object -First 1
 
-$CleanIP = if ($PrimaryNet) { ($PrimaryNet.IPAddress | Where-Object { $_ -match '\.' })[0] } else { "Unknown" }
+# Extract strictly the IPv4 address
+$CleanIP = if ($PrimaryNet) { 
+    ($PrimaryNet.IPAddress | Where-Object { $_ -match '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}' })[0] 
+} else { "Unknown" }
+
 $CleanMAC = if ($PrimaryNet) { $PrimaryNet.MACAddress } else { "Unknown" }
 
-# Format the clean VPN string for Excel (Strict Array Casting)
+# Format the clean VPN string for Excel
 $TotalVPNs = @($DiscoveredVPNs).Count
 $CleanVPNString = if ($TotalVPNs -gt 0) { "$TotalVPNs Detected: " + (@($DiscoveredVPNs) -join ', ') } else { "None Detected" }
 
