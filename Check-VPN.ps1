@@ -121,37 +121,36 @@ foreach ($Manifest in $ManifestPaths) {
         $ExtName = ""
         $ExtDesc = ""
 
-        # Extract EXACTLY the name and description lines
         if ($RawText -match '"name"\s*:\s*"([^"]+)"') { $ExtName = $matches[1] }
         if ($RawText -match '"description"\s*:\s*"([^"]+)"') { $ExtDesc = $matches[1] }
 
-        # Resolve localized names
+        # Safely resolve localized names without Recurse or Backticks
         if ($ExtName -match "__MSG_(.*)__") {
             $CleanKey = $matches[1]
-            $LocFiles = Get-ChildItem -Path "$ExtDir\_locales" -Filter "messages.json" -Recurse -ErrorAction SilentlyContinue
+            $LocFiles = Get-ChildItem -Path "$ExtDir\_locales\*\messages.json" -ErrorAction SilentlyContinue
             foreach ($Loc in $LocFiles) {
                 $LocRaw = Get-Content $Loc.FullName -Raw -ErrorAction SilentlyContinue
-                if ($LocRaw -match "(?s)`"$CleanKey`"\s*:\s*\{.*?`"message`"\s*:\s*`"([^`"]+)`"") {
+                $RegexPattern = '(?s)"' + $CleanKey + '"\s*:\s*\{.*?"message"\s*:\s*"([^"]+)"'
+                if ($LocRaw -match $RegexPattern) {
                     $ExtName = $matches[1]
                     break
                 }
             }
         }
 
-        # Resolve localized descriptions
         if ($ExtDesc -match "__MSG_(.*)__") {
             $CleanKey = $matches[1]
-            $LocFiles = Get-ChildItem -Path "$ExtDir\_locales" -Filter "messages.json" -Recurse -ErrorAction SilentlyContinue
+            $LocFiles = Get-ChildItem -Path "$ExtDir\_locales\*\messages.json" -ErrorAction SilentlyContinue
             foreach ($Loc in $LocFiles) {
                 $LocRaw = Get-Content $Loc.FullName -Raw -ErrorAction SilentlyContinue
-                if ($LocRaw -match "(?s)`"$CleanKey`"\s*:\s*\{.*?`"message`"\s*:\s*`"([^`"]+)`"") {
+                $RegexPattern = '(?s)"' + $CleanKey + '"\s*:\s*\{.*?"message"\s*:\s*"([^"]+)"'
+                if ($LocRaw -match $RegexPattern) {
                     $ExtDesc = $matches[1]
                     break
                 }
             }
         }
 
-        # Check if the TRUE name or description contains our VPN keywords
         if ($ExtName -match "(?i)$VPNKeywords" -or $ExtDesc -match "(?i)$VPNKeywords") {
             $BrowserName = if ($ExtDir -match "Chrome") {"Chrome"} elseif ($ExtDir -match "Brave") {"Brave"} else {"Edge"}
             
@@ -187,15 +186,15 @@ Write-Host ""
 Write-Host "========================================================" -ForegroundColor Cyan
 Write-Host "Scan Complete." -ForegroundColor Cyan
 
-# Grab ONLY the primary network adapter (must have a Default Gateway to filter out VMs)
-$PrimaryNet = Get-WmiObject Win32_NetworkAdapterConfiguration | Where-Object { $_.IPEnabled -eq $true -and $_.DefaultIPGateway -ne $null } | Select-Object -First 1
+# Grab ONLY the primary network adapter using a fast WMI filter
+$PrimaryNet = Get-WmiObject Win32_NetworkAdapterConfiguration -Filter "IPEnabled = True AND DefaultIPGateway IS NOT NULL" -ErrorAction SilentlyContinue | Select-Object -First 1
 
 $CleanIP = if ($PrimaryNet) { ($PrimaryNet.IPAddress | Where-Object { $_ -match '\.' })[0] } else { "Unknown" }
 $CleanMAC = if ($PrimaryNet) { $PrimaryNet.MACAddress } else { "Unknown" }
 
-# Format the clean VPN string for Excel
-$TotalVPNs = $DiscoveredVPNs.Count
-$CleanVPNString = if ($TotalVPNs -gt 0) { "$TotalVPNs Detected: " + ($DiscoveredVPNs -join ', ') } else { "None Detected" }
+# Format the clean VPN string for Excel (Strict Array Casting)
+$TotalVPNs = @($DiscoveredVPNs).Count
+$CleanVPNString = if ($TotalVPNs -gt 0) { "$TotalVPNs Detected: " + (@($DiscoveredVPNs) -join ', ') } else { "None Detected" }
 
 do {
     Write-Host ""
@@ -210,16 +209,17 @@ do {
         $DesktopPath = [Environment]::GetFolderPath("Desktop")
         $ExportPath = "$DesktopPath\VPN_Report_$FileTime.csv"
 
-        # Create a custom object to export (Hostname removed, Data cleaned)
-        $ExportData = [PSCustomObject]@{
+        # Create a strict PSObject to guarantee export formatting
+        $ExportData = New-Object PSObject -Property @{
             Timestamp  = $TimeStamp
             IPAddress  = $CleanIP
             MACAddress = $CleanMAC
             VPNsFound  = $CleanVPNString
         }
 
-        # Export the data
-        $ExportData | Export-Csv -Path $ExportPath -NoTypeInformation -Encoding UTF8
+        # Wrap in array @() and enforce Select-Object for perfect CSV columns
+        @($ExportData) | Select-Object Timestamp, IPAddress, MACAddress, VPNsFound | Export-Csv -Path $ExportPath -NoTypeInformation -Encoding UTF8
+        
         Write-Host "    [+] Success! Clean report saved to Desktop: $ExportPath" -ForegroundColor Green
         Write-Host "    Opening file..." -ForegroundColor Cyan
         Start-Sleep -Seconds 1
