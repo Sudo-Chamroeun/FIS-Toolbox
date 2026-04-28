@@ -11,6 +11,9 @@ Write-Host ""
 $VPNKeywords = "VPN|NordVPN|ExpressVPN|Proton|Windscribe|Hotspot Shield|CyberGhost|TunnelBear|Surfshark|Psiphon|Betternet|ZenMate|SetupVPN|TouchVPN|Hola|Warp|Cloudflare"
 $KeywordArray = $VPNKeywords -split '\|'
 
+# Master list to keep track of clean VPN names for the Excel export
+$DiscoveredVPNs = @()
+
 # ---------------------------------------------------------
 # STEP 1: CHECK ACTIVE INSTALLATIONS (Registry)
 # ---------------------------------------------------------
@@ -32,8 +35,9 @@ foreach ($Key in $UninstallKeys) {
             if ($Installed -notcontains $Name) { $Installed += $Name }
             
             foreach ($KW in $KeywordArray) {
-                if ($Name -match "(?i)$KW" -and $ActiveKeywords -notcontains $KW) {
-                    $ActiveKeywords += $KW
+                if ($Name -match "(?i)$KW") {
+                    if ($ActiveKeywords -notcontains $KW) { $ActiveKeywords += $KW }
+                    if ($DiscoveredVPNs -notcontains $KW) { $DiscoveredVPNs += $KW }
                 }
             }
         }
@@ -75,6 +79,13 @@ foreach ($Path in $SearchPaths) {
             
             if (-not $IsDuplicate -and $Leftovers -notcontains $Folder.FullName) { 
                 $Leftovers += $Folder.FullName 
+            }
+
+            # Add to clean export list
+            foreach ($KW in $KeywordArray) {
+                if ($Folder.Name -match "(?i)$KW" -and $DiscoveredVPNs -notcontains $KW) {
+                    $DiscoveredVPNs += $KW
+                }
             }
         }
     }
@@ -152,6 +163,13 @@ foreach ($Manifest in $ManifestPaths) {
             if ($FoundExtensions -notcontains $ResultString) {
                 $FoundExtensions += $ResultString
             }
+
+            # Add to clean export list
+            foreach ($KW in $KeywordArray) {
+                if (($ExtName -match "(?i)$KW" -or $ExtDesc -match "(?i)$KW") -and $DiscoveredVPNs -notcontains $KW) {
+                    $DiscoveredVPNs += $KW
+                }
+            }
         }
     }
 }
@@ -169,17 +187,15 @@ Write-Host ""
 Write-Host "========================================================" -ForegroundColor Cyan
 Write-Host "Scan Complete." -ForegroundColor Cyan
 
-# Gather IP and MAC address data
-$NetInfo = Get-WmiObject Win32_NetworkAdapterConfiguration | Where-Object { $_.IPEnabled -eq $true }
-$IPAddresses = ($NetInfo.IPAddress | Where-Object { $_ -match '\.' }) -join ', '
-$MACAddresses = ($NetInfo.MACAddress) -join ', '
+# Grab ONLY the primary network adapter (must have a Default Gateway to filter out VMs)
+$PrimaryNet = Get-WmiObject Win32_NetworkAdapterConfiguration | Where-Object { $_.IPEnabled -eq $true -and $_.DefaultIPGateway -ne $null } | Select-Object -First 1
 
-# Format VPN findings into a single readable string
-$AllVPNs = @()
-if ($Installed.Count -gt 0) { $AllVPNs += "INSTALLED: " + ($Installed -join ', ') }
-if ($Leftovers.Count -gt 0) { $AllVPNs += "LEFTOVERS: " + ($Leftovers -join ', ') }
-if ($FoundExtensions.Count -gt 0) { $AllVPNs += "EXTENSIONS: " + ($FoundExtensions -join ', ') }
-$FinalVPNString = if ($AllVPNs.Count -gt 0) { $AllVPNs -join ' || ' } else { "None Detected" }
+$CleanIP = if ($PrimaryNet) { ($PrimaryNet.IPAddress | Where-Object { $_ -match '\.' })[0] } else { "Unknown" }
+$CleanMAC = if ($PrimaryNet) { $PrimaryNet.MACAddress } else { "Unknown" }
+
+# Format the clean VPN string for Excel
+$TotalVPNs = $DiscoveredVPNs.Count
+$CleanVPNString = if ($TotalVPNs -gt 0) { "$TotalVPNs Detected: " + ($DiscoveredVPNs -join ', ') } else { "None Detected" }
 
 do {
     Write-Host ""
@@ -194,18 +210,17 @@ do {
         $DesktopPath = [Environment]::GetFolderPath("Desktop")
         $ExportPath = "$DesktopPath\VPN_Report_$FileTime.csv"
 
-        # Create a custom object to export
+        # Create a custom object to export (Hostname removed, Data cleaned)
         $ExportData = [PSCustomObject]@{
             Timestamp  = $TimeStamp
-            HostName   = $env:COMPUTERNAME
-            IPAddress  = $IPAddresses
-            MACAddress = $MACAddresses
-            VPNsFound  = $FinalVPNString
+            IPAddress  = $CleanIP
+            MACAddress = $CleanMAC
+            VPNsFound  = $CleanVPNString
         }
 
         # Export the data
         $ExportData | Export-Csv -Path $ExportPath -NoTypeInformation -Encoding UTF8
-        Write-Host "    [+] Success! Report saved to Desktop: $ExportPath" -ForegroundColor Green
+        Write-Host "    [+] Success! Clean report saved to Desktop: $ExportPath" -ForegroundColor Green
         Write-Host "    Opening file..." -ForegroundColor Cyan
         Start-Sleep -Seconds 1
         Invoke-Item $ExportPath
