@@ -11,6 +11,9 @@ Write-Host ""
 $VPNKeywords = "VPN|NordVPN|ExpressVPN|Proton|Windscribe|Hotspot Shield|CyberGhost|TunnelBear|Surfshark|Psiphon|Betternet|ZenMate|SetupVPN|TouchVPN|Hola|Warp|Cloudflare"
 $KeywordArray = $VPNKeywords -split '\|'
 
+# Master array to store row-by-row data for the Excel export
+$AllFindings = @()
+
 # ---------------------------------------------------------
 # STEP 1: CHECK ACTIVE INSTALLATIONS (Registry)
 # ---------------------------------------------------------
@@ -29,7 +32,10 @@ foreach ($Key in $UninstallKeys) {
     if ($Apps) { 
         foreach ($App in $Apps) {
             $Name = $App.DisplayName
-            if ($Installed -notcontains $Name) { $Installed += $Name }
+            if ($Installed -notcontains $Name) { 
+                $Installed += $Name 
+                $AllFindings += [PSCustomObject]@{ Name = $Name; Type = "Application" }
+            }
             
             foreach ($KW in $KeywordArray) {
                 if ($Name -match "(?i)$KW" -and $ActiveKeywords -notcontains $KW) {
@@ -75,6 +81,7 @@ foreach ($Path in $SearchPaths) {
             
             if (-not $IsDuplicate -and $Leftovers -notcontains $Folder.FullName) { 
                 $Leftovers += $Folder.FullName 
+                $AllFindings += [PSCustomObject]@{ Name = $Folder.FullName; Type = "Leftover" }
             }
         }
     }
@@ -150,6 +157,7 @@ foreach ($Manifest in $ManifestPaths) {
             $ResultString = "[$BrowserName] $ExtName"
             if ($FoundExtensions -notcontains $ResultString) {
                 $FoundExtensions += $ResultString
+                $AllFindings += [PSCustomObject]@{ Name = $ExtName; Type = "$BrowserName Extension" }
             }
         }
     }
@@ -174,17 +182,11 @@ $PrimaryNet = Get-WmiObject Win32_NetworkAdapterConfiguration -ErrorAction Silen
 # Extract strictly the IPv4 address safely
 $CleanIP = "Unknown"
 if ($PrimaryNet -and $PrimaryNet.IPAddress) {
-    # Force array and grab the first valid IPv4 address
     $IPv4 = @($PrimaryNet.IPAddress) | Where-Object { $_ -match '\d+\.\d+\.\d+\.\d+' } | Select-Object -First 1
     if ($IPv4) { $CleanIP = $IPv4 }
 }
 
 $CleanMAC = if ($PrimaryNet -and $PrimaryNet.MACAddress) { $PrimaryNet.MACAddress } else { "Unknown" }
-
-# Format the strings for the 3 distinct columns
-$ActiveStr    = if ($Installed.Count -gt 0) { $Installed -join ', ' } else { "None" }
-$LeftoverStr  = if ($Leftovers.Count -gt 0) { $Leftovers -join ', ' } else { "None" }
-$ExtensionStr = if ($FoundExtensions.Count -gt 0) { $FoundExtensions -join ', ' } else { "None" }
 
 do {
     Write-Host ""
@@ -199,18 +201,33 @@ do {
         $DesktopPath = [Environment]::GetFolderPath("Desktop")
         $ExportPath = "$DesktopPath\VPN_Report_$FileTime.csv"
 
-        # Create a strict PSObject to guarantee export formatting with new columns
-        $ExportData = New-Object PSObject -Property @{
-            Timestamp    = $TimeStamp
-            IPAddress    = $CleanIP
-            MACAddress   = $CleanMAC
-            ActiveVPN    = $ActiveStr
-            LeftoverVPN  = $LeftoverStr
-            ExtensionVPN = $ExtensionStr
+        $ExportData = @()
+
+        # If clean, export one row stating "None Detected"
+        if ($AllFindings.Count -eq 0) {
+            $ExportData += [PSCustomObject]@{
+                Timestamp  = $TimeStamp
+                IPAddress  = $CleanIP
+                MACAddress = $CleanMAC
+                VPNs       = "None Detected"
+                Type       = "N/A"
+            }
+        } else {
+            # Iterate through findings to create a row-by-row layout
+            for ($i = 0; $i -lt $AllFindings.Count; $i++) {
+                $ExportData += [PSCustomObject]@{
+                    # Only print Time, IP, and MAC on the very first row
+                    Timestamp  = if ($i -eq 0) { $TimeStamp } else { "" }
+                    IPAddress  = if ($i -eq 0) { $CleanIP } else { "" }
+                    MACAddress = if ($i -eq 0) { $CleanMAC } else { "" }
+                    VPNs       = $AllFindings[$i].Name
+                    Type       = $AllFindings[$i].Type
+                }
+            }
         }
 
-        # Wrap in array @() and enforce Select-Object for perfect CSV columns
-        @($ExportData) | Select-Object Timestamp, IPAddress, MACAddress, ActiveVPN, LeftoverVPN, ExtensionVPN | Export-Csv -Path $ExportPath -NoTypeInformation -Encoding UTF8
+        # Enforce column order and save
+        $ExportData | Select-Object Timestamp, IPAddress, MACAddress, VPNs, Type | Export-Csv -Path $ExportPath -NoTypeInformation -Encoding UTF8
         
         Write-Host "    [+] Success! Clean report saved to Desktop: $ExportPath" -ForegroundColor Green
         Write-Host "    Opening file..." -ForegroundColor Cyan
