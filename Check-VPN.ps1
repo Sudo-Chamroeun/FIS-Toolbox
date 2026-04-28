@@ -110,17 +110,16 @@ foreach ($Manifest in $ManifestPaths) {
         $ExtName = ""
         $ExtDesc = ""
 
-        # Extract EXACTLY the name and description lines (Ignores random background hashes)
+        # Extract EXACTLY the name and description lines
         if ($RawText -match '"name"\s*:\s*"([^"]+)"') { $ExtName = $matches[1] }
         if ($RawText -match '"description"\s*:\s*"([^"]+)"') { $ExtDesc = $matches[1] }
 
-        # Resolve localized names (Translates __MSG_xxx__ into the real name)
+        # Resolve localized names
         if ($ExtName -match "__MSG_(.*)__") {
             $CleanKey = $matches[1]
             $LocFiles = Get-ChildItem -Path "$ExtDir\_locales" -Filter "messages.json" -Recurse -ErrorAction SilentlyContinue
             foreach ($Loc in $LocFiles) {
                 $LocRaw = Get-Content $Loc.FullName -Raw -ErrorAction SilentlyContinue
-                # Regex magic to dig into the translation file and grab the true text
                 if ($LocRaw -match "(?s)`"$CleanKey`"\s*:\s*\{.*?`"message`"\s*:\s*`"([^`"]+)`"") {
                     $ExtName = $matches[1]
                     break
@@ -141,7 +140,7 @@ foreach ($Manifest in $ManifestPaths) {
             }
         }
 
-        # Now check if the TRUE name or description contains our VPN keywords
+        # Check if the TRUE name or description contains our VPN keywords
         if ($ExtName -match "(?i)$VPNKeywords" -or $ExtDesc -match "(?i)$VPNKeywords") {
             $BrowserName = if ($ExtDir -match "Chrome") {"Chrome"} elseif ($ExtDir -match "Brave") {"Brave"} else {"Edge"}
             
@@ -164,6 +163,58 @@ if ($FoundExtensions.Count -gt 0) {
 }
 Write-Host ""
 
+# ---------------------------------------------------------
+# STEP 4: GATHER NETWORK DATA & EXPORT MENU
+# ---------------------------------------------------------
 Write-Host "========================================================" -ForegroundColor Cyan
 Write-Host "Scan Complete." -ForegroundColor Cyan
-Pause
+
+# Gather IP and MAC address data
+$NetInfo = Get-WmiObject Win32_NetworkAdapterConfiguration | Where-Object { $_.IPEnabled -eq $true }
+$IPAddresses = ($NetInfo.IPAddress | Where-Object { $_ -match '\.' }) -join ', '
+$MACAddresses = ($NetInfo.MACAddress) -join ', '
+
+# Format VPN findings into a single readable string
+$AllVPNs = @()
+if ($Installed.Count -gt 0) { $AllVPNs += "INSTALLED: " + ($Installed -join ', ') }
+if ($Leftovers.Count -gt 0) { $AllVPNs += "LEFTOVERS: " + ($Leftovers -join ', ') }
+if ($FoundExtensions.Count -gt 0) { $AllVPNs += "EXTENSIONS: " + ($FoundExtensions -join ', ') }
+$FinalVPNString = if ($AllVPNs.Count -gt 0) { $AllVPNs -join ' || ' } else { "None Detected" }
+
+do {
+    Write-Host ""
+    Write-Host "    [1] Export Results to Excel (CSV)" -ForegroundColor White
+    Write-Host "    [Q] Quit" -ForegroundColor Red
+    Write-Host ""
+    $UserChoice = Read-Host "Select an option"
+
+    if ($UserChoice -eq '1') {
+        $TimeStamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+        $FileTime = (Get-Date).ToString("yyyyMMdd_HHmmss")
+        $DesktopPath = [Environment]::GetFolderPath("Desktop")
+        $ExportPath = "$DesktopPath\VPN_Report_$FileTime.csv"
+
+        # Create a custom object to export
+        $ExportData = [PSCustomObject]@{
+            Timestamp  = $TimeStamp
+            HostName   = $env:COMPUTERNAME
+            IPAddress  = $IPAddresses
+            MACAddress = $MACAddresses
+            VPNsFound  = $FinalVPNString
+        }
+
+        # Export the data
+        $ExportData | Export-Csv -Path $ExportPath -NoTypeInformation -Encoding UTF8
+        Write-Host "    [+] Success! Report saved to Desktop: $ExportPath" -ForegroundColor Green
+        Write-Host "    Opening file..." -ForegroundColor Cyan
+        Start-Sleep -Seconds 1
+        Invoke-Item $ExportPath
+        break
+    }
+    elseif ($UserChoice -eq 'q' -or $UserChoice -eq 'Q') {
+        break
+    }
+    else {
+        Write-Host "    [!] Invalid selection." -ForegroundColor Red
+    }
+} until ($UserChoice -eq 'q' -or $UserChoice -eq 'Q')
